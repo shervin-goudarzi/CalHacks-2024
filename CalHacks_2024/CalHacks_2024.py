@@ -92,11 +92,11 @@ class State(rx.State):
         user_data = {
             #'name': self.tokeninfo.get('name'),
             #'email': self.tokeninfo.get('email'),
-            'location': "no",
-            'immigration_status': "no",
-            'when_moved': "no",
-            'skills': "no",
-            'education': "no",
+            'location': ChatState.location,
+            'immigration_status': ChatState.immigration_status,
+            'when_moved': ChatState.when_moved,
+            'skills': ChatState.skills,
+            'education': ChatState.education,
         }
         await self.get_db().collection('users').document(self.user_id).set(user_data)
 
