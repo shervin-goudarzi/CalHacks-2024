@@ -8,7 +8,8 @@ load_dotenv()
 
 class State(rx.State):
     # The current question being asked.
-    question: str = ""
+    question: str
+    prev_question: str = ""
 
     immigration_status: str = ""
     when_moved: str = ""
@@ -28,10 +29,10 @@ class State(rx.State):
         if self.user_id:
             user_data = {
                 "immigration_status": self.immigration_status,
-                "arrival_date": self.arrival_date,
-                "education_level": self.education_level,
+                "arrival_date": self.when_moved,
+                "education_level": self.education,
                 "skills": self.skills,
-                "zipcode": self.zipcode,
+                "zipcode": self.location,
             }
             await self.db.collection("users").document(self.user_id).set(user_data)
 
@@ -54,7 +55,6 @@ class State(rx.State):
         )
         
         verification_result = response.choices[0].message.content
-        print(verification_result)
         is_valid = verification_result.lower().startswith("valid")
         return is_valid, verification_result
 
@@ -97,6 +97,7 @@ class State(rx.State):
         answer = ""
 
         # Clear the question input.
+        self.prev_question = self.question
         self.question = ""
         # Yield here to clear the frontend input before continuing.
         yield
@@ -113,15 +114,15 @@ class State(rx.State):
                 yield
 
         if not self.current_question_index:
-            self.immigration_status = answer
+            self.immigration_status = self.prev_question
         elif self.current_question_index == 1:
-            self.when_moved = answer
+            self.when_moved = self.prev_question
         elif self.current_question_index == 2:
-            self.education = answer
+            self.education = self.prev_question
         elif self.current_question_index == 3:
-            self.skills = answer
+            self.skills = self.prev_question
         else:
-            self.location = answer
+            self.location = self.prev_question
 
         # Move to the next question after processing the current one
         self.current_question_index += 1
