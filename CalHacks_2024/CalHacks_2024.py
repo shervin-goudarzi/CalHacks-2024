@@ -65,16 +65,9 @@ def user_info(tokeninfo: dict) -> rx.Component:
         rx.avatar(
             name=tokeninfo["name"],
             src=tokeninfo["picture"],
-            size="lg",
+            size="2",
         ),
-        rx.vstack(
-            rx.heading(tokeninfo["name"], size="md"),
-            align_items="flex-start",
-        ),
-        rx.button("Logout", on_click=State.logout),
-        padding="10px",
     )
-
 
 def login() -> rx.Component:
     return rx.vstack(
@@ -117,22 +110,70 @@ def index() -> rx.Component:
     )
 
 
-def NavBar() -> rx.Component:
-    return rx.hstack(
-        # Center the navigation links
-        rx.hstack(
-            rx.link("Home", href="/", font_size="lg", color="blue.500", padding="10px"),
-            rx.link("Chatbot", href="/chatbot", font_size="lg", color="blue.500", padding="10px"),
-            rx.link("Settings", href="/settings", font_size="lg", color="blue.500", padding="10px"),
-            spacing="20px",
-            padding="10px",
-        ),
-        rx.spacer(),  # Push profile info to the right
-        # Profile information aligned to the right
-        user_info(State.tokeninfo),
+def navbar_link(name: str, href: str) -> rx.Component:
+    return rx.link(
+        name,
+        href=href,
+        font_size="lg",
+        color="white",
         padding="10px",
-        justify="center",  # Center the entire navbar horizontally
     )
+
+def NavBar() -> rx.Component:
+    return rx.box(
+        rx.desktop_only(
+            rx.hstack(
+                rx.hstack(
+                    rx.text("Product_Name", font_size="2xl", color="white", font_weight="bold", padding="10px"),
+                    align_items="center",
+                ),
+                rx.hstack(
+                    navbar_link("Home", "/home"),
+                    navbar_link("Chatbot", "/chatbot"),
+                    navbar_link("Settings", "/settings"),
+                    spacing="20px",
+                ),
+                rx.menu.root(
+                    rx.menu.trigger(
+                        user_info(State.tokeninfo),
+                    ),
+                    rx.menu.content(
+                        rx.menu.item(
+                            rx.button("Logout", on_click=State.logout)
+                        ),
+                    ),
+                    justify="end",
+                ),
+                justify="between",
+                align_items="center",
+            ),
+        ),
+        rx.mobile_and_tablet(
+            rx.hstack(
+                rx.hstack(
+                    rx.text("Product_Name", font_size="2xl", color="white", font_weight="bold", padding="10px"),
+                    align_items="center",
+                ),
+                rx.menu.root(
+                    rx.menu.trigger(
+                        user_info(State.tokeninfo),
+                    ),
+                    rx.menu.content(
+                        rx.menu.item(
+                            rx.button("Logout", on_click=State.logout)
+                        ),
+                    ),
+                    justify="end",
+                ),
+                justify="between",
+                align_items="center",
+            ),
+        ),
+        padding="10px",
+        width="100%",
+    )
+
+
 
 
 @rx.page(route="/home")
@@ -157,7 +198,7 @@ app = rx.App(
         appearance="light",
         has_background=True,
         radius="large",
-        accent_color="teal",
+        accent_color="blue",
     )
 )
 app.add_page(index)
