@@ -22,7 +22,7 @@ from .react_oauth_google import (
 CLIENT_ID = "1015718854739-uhoa4d0mu7geqhumisq993171fqedf3d.apps.googleusercontent.com"
 
 
-class State(rx.State):
+class State(ChatState):
     db: int = 0
 
     def get_db(self):
@@ -92,11 +92,11 @@ class State(rx.State):
         user_data = {
             #'name': self.tokeninfo.get('name'),
             #'email': self.tokeninfo.get('email'),
-            'location': ChatState.location,
-            'immigration_status': ChatState.immigration_status,
-            'when_moved': ChatState.when_moved,
-            'skills': ChatState.skills,
-            'education': ChatState.education,
+            'location': self.location,
+            'immigration_status': self.immigration_status,
+            'when_moved': self.when_moved,
+            'skills': self.skills,
+            'education': self.education,
         }
         await self.get_db().collection('users').document(self.user_id).set(user_data)
 
