@@ -46,7 +46,6 @@ class State(rx.State):
         
         verification_result = response.choices[0].message.content
         is_valid = verification_result.lower().startswith("valid")
-        print(self.skills)
         return is_valid, verification_result
 
     async def answer(self):
@@ -77,7 +76,7 @@ class State(rx.State):
             system_message = "Thank the user for completing the survey and provide a brief summary of their responses."
 
         session = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a very understanding, compassionate, and empathetic AI assistant conducting an immigration survey. Provide helpful responses based on the user's answers. For the skills question, you must format the user's response as a JSON array of skills. The user will provide skills in natural language, and you need to extract and format them. For example, if the user says 'I can code in Python and JavaScript, and I'm good at project management', you should format it as: {\"skills\": [\"Python\", \"JavaScript\", \"Project Management\"]}. Do not display this JSON format to the user; instead, provide a human-readable response."},
                 {"role": "user", "content": f"User's response to '{self.questions[self.current_question_index]}': {self.question}"},
