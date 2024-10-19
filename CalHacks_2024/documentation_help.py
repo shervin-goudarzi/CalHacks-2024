@@ -129,8 +129,8 @@ def help_with_document(instructions_pdf, form_code):
 
 def main():
     status = input("Enter your immigration status: ")
-    # info = get_immigration_info(status)
-    # display_immigration_info(info)
+    info = get_immigration_info(status)
+    display_immigration_info(info)
     # read_and_parse_pdf("../Documents/i-129.pdf")
     input_pdf_path = '../test_Documents/i-485-test.pdf'
     form_code = extract_form_code(input_pdf_path)
