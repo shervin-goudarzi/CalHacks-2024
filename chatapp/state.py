@@ -3,6 +3,7 @@ from openai import AsyncOpenAI
 import os
 import firebase_admin
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -78,7 +79,7 @@ class State(rx.State):
         session = await client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a very understanding, compassionate, and empathetic AI assistant conducting an immigration survey. Provide helpful responses based on the user's answers. For the skills question, the answer must be a JSON format array of skills. Note, the user will not provide these skills in this format, it's your responsibility to put it in JSON; consequently, do not ask the user to list the skills in a certain manner! A sample response should be: {\"skills\": [\"skill1\", \"skill2\", \"skill3\"]}."},
+                {"role": "system", "content": "You are a very understanding, compassionate, and empathetic AI assistant conducting an immigration survey. Provide helpful responses based on the user's answers. For the skills question, you must format the user's response as a JSON array of skills. The user will provide skills in natural language, and you need to extract and format them. For example, if the user says 'I can code in Python and JavaScript, and I'm good at project management', you should format it as: {\"skills\": [\"Python\", \"JavaScript\", \"Project Management\"]}. Do not display this JSON format to the user; instead, provide a human-readable response."},
                 {"role": "user", "content": f"User's response to '{self.questions[self.current_question_index]}': {self.question}"},
                 {"role": "system", "content": system_message}
             ],
