@@ -219,7 +219,7 @@ def protected() -> rx.Component:
 def chatbot() -> rx.Component:
     return rx.vstack(
         NavBar(),
-        rrx.container(chatmodel()),
+        rx.container(chatmodel()),
     )
 
 
