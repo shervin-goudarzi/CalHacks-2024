@@ -60,6 +60,35 @@ class State(rx.State):
         if self.token_is_valid:
             return f"This content can only be viewed by a logged in User. Nice to see you {self.tokeninfo['name']}"
         return "Not logged in."
+    
+    def save_user_profile(self):
+        user_id = self.tokeninfo.get('sub')  # Use Google user ID
+        user_data = {
+            'name': self.tokeninfo.get('name'),
+            'email': self.tokeninfo.get('email'),
+            'location': self.user_location,
+            'immigration_status': self.visa_status,
+            'when_moved': self.when_moved,
+            'skills': self.skills,
+            'education': self.education,
+            'housing_situation': self.housing_situation,
+            'need': self.need,
+        }
+        db.collection('users').document(user_id).set(user_data)
+
+    def load_user_profile(self):
+        user_id = self.tokeninfo.get('sub')
+        doc_ref = db.collection('users').document(user_id)
+        doc = doc_ref.get()
+        if doc.exists:
+            user_data = doc.to_dict()
+            self.user_location = user_data.get('location', '')
+            self.visa_status = user_data.get('immigration_status', '')
+            self.when_moved = user_data.get('when_moved', '')
+            self.skills = user_data.get('skills', [])
+            self.education = user_data.get('education', [])
+            self.housing_situation = user_data.get('housing_situation', '')
+            self.need = user_data.get('need', '')
 
 
 def user_info(tokeninfo: dict) -> rx.Component:
