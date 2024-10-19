@@ -29,9 +29,11 @@ input_style = dict(
     padding="1em",
     box_shadow=shadow,
     width="350px",
-    height="100px"
+    height="50px"
 )
 button_style = dict(
     background_color=rx.color("accent", 10),
     box_shadow=shadow,
+    height="50px",
+    width="100px"
 )
