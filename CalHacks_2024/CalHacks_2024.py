@@ -225,7 +225,6 @@ def chatbot() -> rx.Component:
 
 app = rx.App(
         theme=rx.theme(
-        appearance="light",
         has_background=True,
         radius="large",
         accent_color="blue",
