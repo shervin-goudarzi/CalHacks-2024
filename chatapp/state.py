@@ -2,13 +2,14 @@ import reflex as rx
 from openai import AsyncOpenAI
 import os
 import firebase_admin
-from firebase_admin import credentials, firestore
 from dotenv import load_dotenv
+
 load_dotenv()
 
 class State(rx.State):
-    # The current question being asked.
-    question: str = ""
+    # The current question being asked
+    question: str
+    prev_question: str = ""
 
     immigration_status: str = ""
     when_moved: str = ""
@@ -23,17 +24,6 @@ class State(rx.State):
         "What skills do you have?",
         "What is your current zipcode?"
     ]
-
-    async def save_user_profile(self):
-        if self.user_id:
-            user_data = {
-                "immigration_status": self.immigration_status,
-                "arrival_date": self.arrival_date,
-                "education_level": self.education_level,
-                "skills": self.skills,
-                "zipcode": self.zipcode,
-            }
-            await self.db.collection("users").document(self.user_id).set(user_data)
 
     # Keep track of the chat history as a list of (question, answer) tuples.
     chat_history: list[tuple[str, str]] = [("", "What's your current immigration status?")]
@@ -54,7 +44,6 @@ class State(rx.State):
         )
         
         verification_result = response.choices[0].message.content
-        print(verification_result)
         is_valid = verification_result.lower().startswith("valid")
         return is_valid, verification_result
 
@@ -97,6 +86,7 @@ class State(rx.State):
         answer = ""
 
         # Clear the question input.
+        self.prev_question = self.question
         self.question = ""
         # Yield here to clear the frontend input before continuing.
         yield
@@ -113,15 +103,15 @@ class State(rx.State):
                 yield
 
         if not self.current_question_index:
-            self.immigration_status = answer
+            self.immigration_status = self.prev_question
         elif self.current_question_index == 1:
-            self.when_moved = answer
+            self.when_moved = self.prev_question
         elif self.current_question_index == 2:
-            self.education = answer
+            self.education = self.prev_question
         elif self.current_question_index == 3:
-            self.skills = answer
+            self.skills = self.prev_question
         else:
-            self.location = answer
+            self.location = self.prev_question
 
         # Move to the next question after processing the current one
         self.current_question_index += 1
@@ -129,34 +119,3 @@ class State(rx.State):
         # If we've finished the survey, disable further input
         if self.current_question_index >= len(self.questions):
             self.current_question_index = -1 
-
-def chatmodel() -> rx.Component:
-    return rx.vstack(
-        rx.foreach(
-            State.chat_history,
-            lambda message: rx.box(
-                rx.text(message[1] if message[1] else message[0]),
-                text_align="left" if message[1] else "right",
-                color="blue" if message[1] else "green",
-                padding="1em",
-                border_radius="0.5em",
-                bg="lightgray" if message[1] else "lightgreen",
-                margin_y="0.5em",
-            )
-        ),
-        rx.cond(
-            State.current_question_index >= 0,
-            rx.vstack(
-                rx.input(
-                    value=State.question,
-                    placeholder="Type your answer here...",
-                    on_change=State.set_question,
-                ),
-                rx.button("Submit", on_click=State.answer),
-            ),
-            rx.text("Survey completed. Thank you for your responses!")
-        ),
-        spacing="4",
-        width="100%",
-        max_width="600px",
-    )
