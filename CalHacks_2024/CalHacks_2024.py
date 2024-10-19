@@ -100,6 +100,17 @@ class State(rx.State):
             self.housing_situation = user_data.get('housing_situation', '')
             self.need = user_data.get('need', '')
 
+    await def save_user_profile():
+    if self.user_id:
+        user_data = {
+            "immigration_status": ChatState.immigration_status,
+            "arrival_date": ChatState.when_moved,
+            "education_level": ChatState.education,
+            "skills": ChatState.skills,
+            "zipcode": ChatState.location,
+        }
+        await self.db.collection("users").document(self.user_id).set(user_data)
+
 
 def user_info(tokeninfo: dict) -> rx.Component:
     return rx.hstack(
@@ -228,7 +239,11 @@ def protected() -> rx.Component:
 def chatbot() -> rx.Component:
     return rx.vstack(
         NavBar(),
-        rx.container(chatmodel()),
+        rx.cond(
+                ChatState.current_question_index < 0, 
+                chatmodel(), 
+                rx.button("Save", on_click=State.save_user_profile)
+            ),
     )
 
 
