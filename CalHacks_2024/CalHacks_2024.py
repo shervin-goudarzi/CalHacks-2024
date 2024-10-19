@@ -92,13 +92,13 @@ class State(rx.State):
         user_data = {
             #'name': self.tokeninfo.get('name'),
             #'email': self.tokeninfo.get('email'),
-            'location': await ChatState.location,
-            'immigration_status': await ChatState.immigration_status,
-            'when_moved': await ChatState.when_moved,
-            'skills': await ChatState.skills,
-            'education': await ChatState.education,
+            'location': "no",
+            'immigration_status': "no",
+            'when_moved': "no",
+            'skills': "no",
+            'education': "no",
         }
-        await self.get_db().collection('users').document(self.user_id).set(json.dumps(user_data))
+        await self.get_db().collection('users').document(self.user_id).set(user_data)
 
     def load_user_profile(self):
         user_id = self.tokeninfo.get('sub')
