@@ -205,8 +205,6 @@ def NavBar() -> rx.Component:
     )
 
 
-
-
 @rx.page(route="/home")
 @require_google_login
 def protected() -> rx.Component:
