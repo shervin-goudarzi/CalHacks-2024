@@ -107,7 +107,7 @@ def extract_form_code(input_pdf_path):
 
 # Example usage
 def help_with_document(instructions_pdf, form_code):
-    sample_file = genai.upload_file(path=instructions_pdf, display_name=form_code+"_instructions")
+    sample_file = genai.upload_file(path=instructions_pdf, display_name=f"{form_code}_instructions")
     generation_config = {
         "temperature": 0.7,
         "top_p": 0.95,
@@ -119,11 +119,23 @@ def help_with_document(instructions_pdf, form_code):
         model_name="gemini-1.5-pro-002",
         generation_config=generation_config,
     )
-    response = model.generate_content([
-    sample_file,
-    "Can you summarize this document as a bulleted list?"
-        ])
-    print(response.text)
+    chat = model.start_chat(history=[])
+
+    # Initial message to set the context
+    initial_prompt = f"You are an assistant helping with the instructions and questions for form {form_code}. The instructions have been uploaded as a PDF. Please provide a brief summary of the document."
+    response = chat.send_message([sample_file, initial_prompt])
+    print("Assistant: " + response.text)
+
+    # Start the conversation loop
+    while True:
+        user_input = input("\nYou: ")
+        if user_input.lower() in ['exit', 'quit', 'bye']:
+            print("Assistant: Goodbye! If you have any more questions, feel free to ask.")
+            break
+
+        # Send user's message and get response
+        response = chat.send_message(user_input)
+        print("Assistant: " + response.text)
 
 
 
@@ -132,8 +144,9 @@ def main():
     info = get_immigration_info(status)
     display_immigration_info(info)
     # read_and_parse_pdf("../Documents/i-129.pdf")
-    input_pdf_path = '../test_Documents/i-485-test.pdf'
-    form_code = extract_form_code(input_pdf_path)
+    # input_pdf_path = '../test_Documents/i-485-test.pdf'
+    # form_code = extract_form_code(input_pdf_path)
+    form_code = input("What form do you need help with?")
     file_out = ""
     documents_dir = '../Documents'
     for file in os.listdir(documents_dir):
@@ -144,9 +157,6 @@ def main():
     instructions_pdf = os.path.join(documents_dir, file_out)
     help_with_document(instructions_pdf, form_code)
 
-                
-
-    # read_parse_and_edit_pdf("../Documents/i-129.pdf", "../Documents/i-129-edited.pdf", "Edited text")
 
 
 if __name__ == "__main__":
