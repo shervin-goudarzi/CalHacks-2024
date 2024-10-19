@@ -5,11 +5,9 @@ import time
 
 from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
-from chatapp.chatbot import chatmodel
 
 import reflex as rx
 
-from .layout import layout
 from .react_oauth_google import (
     GoogleOAuthProvider,
     GoogleLogin,
@@ -97,22 +95,20 @@ def require_google_login(page) -> rx.Component:
 
 
 def index() -> rx.Component:
-    return layout(
-        rx.center(
-            rx.vstack(
-                rx.heading("Welcome to Immigrant Support Portal", size="2xl", color="teal.500"),
-                rx.text(
-                    "This website is dedicated to providing resources and support for immigrants. "
-                    "Our goal is to help you navigate the complexities of immigration and find the assistance you need.",
-                    font_size="lg",
-                    padding="20px",
-                    text_align="center",
-                ),
-                rx.link("Login with Google", href="/home", font_size="lg", color="blue.500"),
-                spacing="20px",
+    return rx.center(
+        rx.vstack(
+            rx.heading("Welcome to Immigrant Support Portal", size="2xl", color="teal.500"),
+            rx.text(
+                "This website is dedicated to providing resources and support for immigrants. "
+                "Our goal is to help you navigate the complexities of immigration and find the assistance you need.",
+                font_size="lg",
+                padding="20px",
+                text_align="center",
             ),
-            padding="50px",
-        )
+            rx.link("Login with Google", href="/home", font_size="lg", color="blue.500"),
+            spacing="20px",
+        ),
+        padding="50px",
     )
 
 
@@ -195,17 +191,18 @@ def protected() -> rx.Component:
 def chatbot() -> rx.Component:
     return rx.vstack(
         NavBar(),
-        rx.container(chatmodel()),
+        rx.text("put chatbot here"),
     )
+
 
 app = rx.App(
         theme=rx.theme(
+        appearance="light",
         has_background=True,
         radius="large",
         accent_color="blue",
     )
 )
-
 app.add_page(index)
 app.add_page(protected)
 app.add_page(chatbot)
