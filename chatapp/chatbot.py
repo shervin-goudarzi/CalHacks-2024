@@ -32,22 +32,19 @@ def chat() -> rx.Component:
     )
 
 def action_bar() -> rx.Component:
-    return rx.cond(State.current_question_index >= 0,
-        rx.hstack(
-            rx.input(
-                value=State.question,
-                placeholder="Answer the question above.",
-                on_change=State.set_question,
-                style=style.input_style,
-            ),
-            rx.button(
-                "Respond",
-                on_click=State.answer,
-                style=style.button_style,
-            ),
-        ),
-        rx.button("Click Here to Proceed", on_click=State.save_user_profile())
-    )
+    return rx.hstack(
+                rx.input(
+                    value=State.question,
+                    placeholder="Answer the question above.",
+                    on_change=State.set_question,
+                    style=style.input_style,
+                ),
+                rx.button(
+                    "Respond",
+                    on_click=State.answer,
+                    style=style.button_style,
+                ),
+            )
 
 def chatmodel() -> rx.Component:
     return rx.center(
@@ -60,35 +57,3 @@ def chatmodel() -> rx.Component:
     )
 
 __all__ = ["chatmodel"]
-
-
-# def chatmodel() -> rx.Component:
-#     return rx.vstack(
-#         rx.foreach(
-#             State.chat_history,
-#             lambda message: rx.box(
-#                 rx.text(message[1] if message[1] else message[0]),
-#                 text_align="left" if message[1] else "right",
-#                 color="blue" if message[1] else "green",
-#                 padding="1em",
-#                 border_radius="0.5em",
-#                 bg="lightgray" if message[1] else "lightgreen",
-#                 margin_y="0.5em",
-#             )
-#         ),
-#         rx.cond(
-#             State.current_question_index >= 0,
-#             rx.vstack(
-#                 rx.input(
-#                     value=State.question,
-#                     placeholder="Type your answer here...",
-#                     on_change=State.set_question,
-#                 ),
-#                 rx.button("Submit", on_click=State.answer),
-#             ),
-#             rx.text("Survey completed. Thank you for your responses!")
-#         ),
-#         spacing="4",
-#         width="100%",
-#         max_width="600px",
-#     )
