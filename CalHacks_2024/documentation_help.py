@@ -2,6 +2,12 @@ import os
 import json
 import google.generativeai as genai
 from dotenv import load_dotenv
+import PyPDF2
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+import io
+import re
+
 load_dotenv()
 
 # Configure Gemini
@@ -70,10 +76,78 @@ def display_immigration_info(info):
     
     # print(f"\nAdditional Information: {info['additional_info']}")
 
+def extract_form_code(input_pdf_path):
+    try:
+        with open(input_pdf_path, 'rb') as file:
+            pdf_reader = PyPDF2.PdfReader(file)
+            
+            # Extract text from the first page
+            first_page_content = pdf_reader.pages[0].extract_text()
+            
+            # Use regex to find the form type
+            form_match = re.search(r'Form\s+([A-Z]-\d+)', first_page_content)
+            if form_match:
+                form_type = form_match.group(0)  # Full match (e.g., "Form I-90")
+                form_code = form_match.group(1)  # Just the code (e.g., "I-90")
+                # print(f"Form Type: {form_type}")
+                # print(f"Form Code: {form_code}")
+                return form_code
+            else:
+                print("Form type not found in the document.")
+                return None
+        
+    except FileNotFoundError:
+        print(f"Error: The file '{input_pdf_path}' was not found.")
+    except PyPDF2.errors.PdfReadError:
+        print(f"Error: '{input_pdf_path}' is not a valid PDF file or is encrypted.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {str(e)}")
+    
+    return None
+
+# Example usage
+def help_with_document(instructions_pdf, form_code):
+    sample_file = genai.upload_file(path=instructions_pdf, display_name=form_code+"_instructions")
+    generation_config = {
+        "temperature": 0.7,
+        "top_p": 0.95,
+        "top_k": 40,
+        "max_output_tokens": 8192,
+    }
+
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-pro-002",
+        generation_config=generation_config,
+    )
+    response = model.generate_content([
+    sample_file,
+    "Can you summarize this document as a bulleted list?"
+        ])
+    print(response.text)
+
+
+
 def main():
     status = input("Enter your immigration status: ")
-    info = get_immigration_info(status)
-    display_immigration_info(info)
+    # info = get_immigration_info(status)
+    # display_immigration_info(info)
+    # read_and_parse_pdf("../Documents/i-129.pdf")
+    input_pdf_path = '../test_Documents/i-485-test.pdf'
+    form_code = extract_form_code(input_pdf_path)
+    file_out = ""
+    documents_dir = '../Documents'
+    for file in os.listdir(documents_dir):
+        file_path = os.path.join(documents_dir, file)
+        if file.endswith('.pdf') and form_code.lower() in file:
+            file_out = file
+            break
+    instructions_pdf = os.path.join(documents_dir, file_out)
+    help_with_document(instructions_pdf, form_code)
+
+                
+
+    # read_parse_and_edit_pdf("../Documents/i-129.pdf", "../Documents/i-129-edited.pdf", "Edited text")
+
 
 if __name__ == "__main__":
     main()
