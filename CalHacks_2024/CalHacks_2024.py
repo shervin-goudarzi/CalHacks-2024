@@ -1,5 +1,6 @@
 import functools
 import json
+import jwt
 import os
 import time
 
@@ -9,8 +10,9 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 import reflex as rx
-from chatapp.chatbot import chatmodel
+from chatapp.chatbot import chat, action_bar, chatmodel
 from chatapp.chatbot import State as ChatState
+from typing import Dict, Any
 
 from .react_oauth_google import (
     GoogleOAuthProvider,
@@ -19,20 +21,35 @@ from .react_oauth_google import (
 
 CLIENT_ID = "1015718854739-uhoa4d0mu7geqhumisq993171fqedf3d.apps.googleusercontent.com"
 
-# Initialize Firebase (do this only once, typically at the start of your application)
-# Get the directory of the current script
-current_dir = os.path.dirname(os.path.abspath(__file__))
-# Construct the path to the credentials file
-cred_path = os.path.join(current_dir, "..", "firebase-credentials.json")
-cred = credentials.Certificate(cred_path)
-firebase_admin.initialize_app(cred)
-db = firestore.client()
 
 class State(rx.State):
+    db: int = 0
+
+    def get_db(self):
+        if self.db != 0:
+            return self.db
+        # Initialize Firebase (do this only once, typically at the start of your application)
+        # Get the directory of the current script
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # Construct the path to the credentials file
+        cred_path = os.path.join(current_dir, "..", "firebase-credentials.json")
+        cred = credentials.Certificate(cred_path)
+        firebase_admin.initialize_app(cred)
+        self.db = firestore.client()
+        return self.db
+
     id_token_json: str = rx.LocalStorage()
+    user_id: str = ""
 
     def on_success(self, id_token: dict):
         self.id_token_json = json.dumps(id_token)
+        id_token_data = json.loads(self.id_token_json)
+        # Get the ID token
+        id_token = id_token_data['credential']
+        # Decode the token (without verification, as we trust the source)
+        decoded_token = jwt.decode(id_token, options={"verify_signature": False})
+        # Extract the 'sub' claim
+        self.user_id = decoded_token['sub']
         return rx.redirect("/home")
 
     @rx.var(cache=True)
@@ -71,24 +88,21 @@ class State(rx.State):
             return f"This content can only be viewed by a logged in User. Nice to see you {self.tokeninfo['name']}"
         return "Not logged in."
     
-    def save_user_profile(self):
-        user_id = self.tokeninfo.get('sub')  # Use Google user ID
+    async def save_user_profile(self):
         user_data = {
-            'name': self.tokeninfo.get('name'),
-            'email': self.tokeninfo.get('email'),
-            'location': self.user_location,
-            'immigration_status': self.visa_status,
-            'when_moved': self.when_moved,
-            'skills': self.skills,
-            'education': self.education,
-            'housing_situation': self.housing_situation,
-            'need': self.need,
+            #'name': self.tokeninfo.get('name'),
+            #'email': self.tokeninfo.get('email'),
+            'location': await ChatState.location,
+            'immigration_status': await ChatState.immigration_status,
+            'when_moved': await ChatState.when_moved,
+            'skills': await ChatState.skills,
+            'education': await ChatState.education,
         }
-        db.collection('users').document(user_id).set(user_data)
+        await self.get_db().collection('users').document(self.user_id).set(json.dumps(user_data))
 
     def load_user_profile(self):
         user_id = self.tokeninfo.get('sub')
-        doc_ref = db.collection('users').document(user_id)
+        doc_ref = self.get_db().collection('users').document(user_id)
         doc = doc_ref.get()
         if doc.exists:
             user_data = doc.to_dict()
@@ -99,17 +113,6 @@ class State(rx.State):
             self.education = user_data.get('education', [])
             self.housing_situation = user_data.get('housing_situation', '')
             self.need = user_data.get('need', '')
-
-    await def save_user_profile():
-    if self.user_id:
-        user_data = {
-            "immigration_status": ChatState.immigration_status,
-            "arrival_date": ChatState.when_moved,
-            "education_level": ChatState.education,
-            "skills": ChatState.skills,
-            "zipcode": ChatState.location,
-        }
-        await self.db.collection("users").document(self.user_id).set(user_data)
 
 
 def user_info(tokeninfo: dict) -> rx.Component:
@@ -239,10 +242,11 @@ def protected() -> rx.Component:
 def chatbot() -> rx.Component:
     return rx.vstack(
         NavBar(),
+        chat(),
         rx.cond(
-                ChatState.current_question_index < 0, 
-                chatmodel(), 
-                rx.button("Save", on_click=State.save_user_profile)
+                ChatState.current_question_index >= 0, 
+                action_bar(),
+                rx.button("Save", on_click=State.save_user_profile())
             ),
     )
 
