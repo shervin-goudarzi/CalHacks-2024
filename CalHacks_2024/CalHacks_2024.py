@@ -152,10 +152,12 @@ def require_google_login(page) -> rx.Component:
 def index() -> rx.Component:
     return rx.center(
         rx.vstack(
-            rx.heading("Welcome to Immigrant Support Portal", size="2xl", color="teal.500"),
+            rx.heading("Welcome to Product_Name", size="2xl", color="teal.500"),
             rx.text(
-                "This website is dedicated to providing resources and support for immigrants. "
-                "Our goal is to help you navigate the complexities of immigration and find the assistance you need.",
+                """
+                Immigrants and refugees face numerous challenges when settling in a new country, including language barriers, legal complexities, and difficulties in finding suitable employment and support networks. While existing resources like FindHello provide general information, there's a clear need for a more personalized, comprehensive, and long-term solution. 
+                Our app aims to fill this gap by offering tailored assistance throughout the integration process, helping immigrants and refugees thrive in their new home in the long term.
+                """,
                 font_size="lg",
                 padding="20px",
                 text_align="center",
@@ -172,7 +174,6 @@ def navbar_link(name: str, href: str) -> rx.Component:
         name,
         href=href,
         font_size="lg",
-        color="white",
         padding="10px",
     )
 
@@ -181,13 +182,13 @@ def NavBar() -> rx.Component:
         rx.desktop_only(
             rx.hstack(
                 rx.hstack(
-                    rx.text("Product_Name", font_size="2xl", color="white", font_weight="bold", padding="10px"),
+                    rx.text("Product_Name", font_size="2xl", font_weight="bold", padding="10px"),
                     align_items="center",
                 ),
                 rx.hstack(
                     navbar_link("Home", "/home"),
                     navbar_link("Chatbot", "/chatbot"),
-                    navbar_link("Settings", "/settings"),
+                    navbar_link("Documents", "/documents"),
                     spacing="20px",
                 ),
                 rx.menu.root(
@@ -208,7 +209,7 @@ def NavBar() -> rx.Component:
         rx.mobile_and_tablet(
             rx.hstack(
                 rx.hstack(
-                    rx.text("Product_Name", font_size="2xl", color="white", font_weight="bold", padding="10px"),
+                    rx.text("Product_Name", font_size="2xl", font_weight="bold", padding="10px"),
                     align_items="center",
                 ),
                 rx.menu.root(
@@ -238,19 +239,41 @@ def protected() -> rx.Component:
         NavBar(),
     )
 
+@rx.page(route="/documents")
+@require_google_login
+def documents() -> rx.Component:
+    return rx.vstack(
+        NavBar(),
+        rx.center(
+                rx.vstack(
+                    rx.text("Documents"),
+                    spacing="20px",
+                ),
+                width="100%",
+            ),
+            width="100%",
+            spacing="20px",
+        )
 
 @rx.page(route="/chatbot")
 @require_google_login
 def chatbot() -> rx.Component:
     return rx.vstack(
         NavBar(),
-        chat(),
-        rx.cond(
-                ChatState.current_question_index >= 0, 
-                action_bar(),
-                rx.button("Save", on_click=State.save_user_profile()),
-                #rx.button("Restart", on_click=ChatState.save_user_profile())
+        rx.center(
+            rx.vstack(
+                chat(),
+                rx.cond(
+                    ChatState.current_question_index >= 0, 
+                    action_bar(),
+                    rx.button("Save", on_click=State.save_user_profile())
+                ),
+                spacing="20px",
             ),
+            width="100%",
+        ),
+        width="100%",
+        spacing="20px",
     )
 
 
@@ -258,6 +281,17 @@ app = rx.App(
         theme=rx.theme(
         radius="large",
         accent_color="blue",
+        style={
+            "light": {
+                "--text-color": "black",
+                "--bg-color": "white",
+            },
+            "dark": {
+                "--text-color": "white",
+                "--bg-color": "black",
+            },
+        },
+        appearance="light",
     )
 )
 app.add_page(index)
