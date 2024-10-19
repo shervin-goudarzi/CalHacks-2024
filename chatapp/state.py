@@ -10,20 +10,6 @@ class State(rx.State):
     # The current question being asked.
     question: str = ""
 
-    user_id: str = ""
-    immigration_status: str = ""
-    arrival_date: str = ""
-    education_level: str = ""
-    skills: str = ""
-    zipcode: str = ""
-
-    def __init__(self):
-        super().__init__()
-        # Initialize Firebase
-        cred = credentials.Certificate("../firebase-credentials.json")
-        firebase_admin.initialize_app(cred)
-        self.db = firestore.client()
-
     questions: list[str] = [
         "What's your current immigration status?",
         "What date did you come to the US?",
@@ -31,17 +17,6 @@ class State(rx.State):
         "What skills do you have?",
         "What is your current zipcode?"
     ]
-
-    async def save_user_profile(self):
-        if self.user_id:
-            user_data = {
-                "immigration_status": self.immigration_status,
-                "arrival_date": self.arrival_date,
-                "education_level": self.education_level,
-                "skills": self.skills,
-                "zipcode": self.zipcode,
-            }
-            await self.db.collection("users").document(self.user_id).set(user_data)
 
     # Keep track of the chat history as a list of (question, answer) tuples.
     chat_history: list[tuple[str, str]] = [("", "What's your current immigration status?")]
@@ -97,58 +72,9 @@ class State(rx.State):
                 )
                 yield
 
-        # Process the user's answer and update the corresponding field
-        if self.current_question_index == 0:
-            self.immigration_status = self.question
-        elif self.current_question_index == 1:
-            self.arrival_date = self.question
-        elif self.current_question_index == 2:
-            self.education_level = self.question
-        elif self.current_question_index == 3:
-            self.skills = self.question
-        elif self.current_question_index == 4:
-            self.zipcode = self.question
-
         # Move to the next question after processing the current one
         self.current_question_index += 1
 
         # If we've finished the survey, disable further input
         if self.current_question_index >= len(self.questions):
-            self.current_question_index = -1 
-
-def chatmodel(chatbot_state: State = State()) -> rx.Component:
-    return rx.vstack(
-        rx.box(
-            rx.foreach(
-                chatbot_state.chat_history,
-                lambda messages: rx.vstack(
-                    rx.box(
-                        rx.text(messages[0]),
-                        background_color="lightgrey",
-                        padding="1em",
-                        border_radius="5px",
-                    ),
-                    rx.box(
-                        rx.text(messages[1]),
-                        background_color="lightblue",
-                        padding="1em",
-                        border_radius="5px",
-                    ),
-                    width="100%",
-                ),
-            ),
-            padding="1em",
-            height="60vh",
-            overflow="auto",
-        ),
-        rx.form(
-            rx.input(
-                placeholder="Type your answer here...",
-                id="question",
-                on_blur=chatbot_state.set_question,
-                is_disabled=chatbot_state.current_question_index == -1,
-            ),
-            rx.button("Send", type="submit", on_click=chatbot_state.answer),
-            width="100%",
-        ),
-    )
+            self.current_question_index = -1

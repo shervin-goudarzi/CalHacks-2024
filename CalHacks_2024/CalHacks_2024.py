@@ -8,8 +8,7 @@ from google.oauth2.id_token import verify_oauth2_token
 from firebase_admin import firestore
 
 import reflex as rx
-from chatapp.state import State as ChatbotState
-from chatapp.state import chatmodel
+from chatapp.chatbot import chatmodel
 
 from .react_oauth_google import (
     GoogleOAuthProvider,
@@ -18,17 +17,15 @@ from .react_oauth_google import (
 
 CLIENT_ID = "1015718854739-uhoa4d0mu7geqhumisq993171fqedf3d.apps.googleusercontent.com"
 
-db = firestore.client()
+# class State(rx.State):
+#     """The app state."""
 
 class State(rx.State):
     id_token_json: str = rx.LocalStorage()
 
-    chatbot_state: ChatbotState = ChatbotState()
-
     def on_success(self, id_token: dict):
         self.id_token_json = json.dumps(id_token)
-        self.chatbot_state.user_id = self.tokeninfo.get('sub')
-        return rx.redirect("/onboarding")
+        return rx.redirect("/home")
 
     @rx.var(cache=True)
     def tokeninfo(self) -> dict[str, str]:
@@ -210,16 +207,6 @@ def NavBar() -> rx.Component:
     )
 
 
-@rx.page(route="/onboarding")
-@require_google_login
-def onboarding() -> rx.Component:
-    return rx.vstack(
-        NavBar(),
-        rx.heading("Welcome! Let's get to know you better.", size="xl"),
-        rx.text("Please answer the following questions to complete your profile."),
-        rx.container(chatmodel()),
-    )
-
 @rx.page(route="/home")
 @require_google_login
 def protected() -> rx.Component:
@@ -228,13 +215,12 @@ def protected() -> rx.Component:
     )
 
 
-# Update the chatbot route to use the onboarding state
 @rx.page(route="/chatbot")
 @require_google_login
 def chatbot() -> rx.Component:
     return rx.vstack(
         NavBar(),
-        rx.container(chatmodel(State.chatbot_state)),
+        rx.container(chatmodel()),
     )
 
 
@@ -247,5 +233,4 @@ app = rx.App(
 )
 app.add_page(index)
 app.add_page(protected)
-app.add_page(onboarding)
 app.add_page(chatbot)
