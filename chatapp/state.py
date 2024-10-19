@@ -4,10 +4,21 @@ import os
 import firebase_admin
 from firebase_admin import credentials, firestore
 from dotenv import load_dotenv
+from CalHacks_2024 import State as MainState
+
 load_dotenv()
 
+# Initialize Firebase (do this only once, typically at the start of your application)
+# Get the directory of the current script
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Construct the path to the credentials file
+cred_path = os.path.join(current_dir, "..", "firebase-credentials.json")
+cred = credentials.Certificate(cred_path)
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+
 class State(rx.State):
-    # The current question being asked.
+    # The current question being asked
     question: str
     prev_question: str = ""
 
@@ -24,6 +35,8 @@ class State(rx.State):
         "What skills do you have?",
         "What is your current zipcode?"
     ]
+
+    user_id: str = MainState.tokeninfo.get('sub')
 
     async def save_user_profile(self):
         if self.user_id:
