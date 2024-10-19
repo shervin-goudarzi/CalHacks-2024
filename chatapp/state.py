@@ -45,7 +45,6 @@ class State(rx.State):
         
         verification_result = response.choices[0].message.content
         is_valid = verification_result.lower().startswith("valid")
-        print(self.immigration_status, self.when_moved, self.education, self.skills, self.location)
         return is_valid, verification_result
 
     async def answer(self):
@@ -73,7 +72,7 @@ class State(rx.State):
             system_message = "Thank the user for completing the survey and provide a brief summary of their responses."
 
         session = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a very understanding, compassionate, and empathetic AI assistant conducting an immigration survey. Provide helpful responses based on the user's answers."},
                 {"role": "user", "content": f"User's response to '{self.questions[self.current_question_index]}': {self.question}"},

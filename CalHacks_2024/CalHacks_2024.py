@@ -55,13 +55,15 @@ class State(ChatState):
     @rx.var(cache=True)
     def tokeninfo(self) -> dict[str, str]:
         try:
-            return verify_oauth2_token(
+            token_info = verify_oauth2_token(
                 json.loads(self.id_token_json)[
                     "credential"
                 ],
                 requests.Request(),
                 CLIENT_ID,
             )
+            self.user_id = token_info.get('sub')
+            return token_info
         except Exception as exc:
             if self.id_token_json:
                 print(f"Error verifying token: {exc}")
@@ -98,7 +100,7 @@ class State(ChatState):
             'skills': self.skills,
             'education': self.education,
         }
-        await self.get_db().collection('users').document(self.user_id).set(user_data)
+        self.get_db().collection('users').document(self.user_id).set(user_data)
 
     def load_user_profile(self):
         user_id = self.tokeninfo.get('sub')
@@ -246,14 +248,14 @@ def chatbot() -> rx.Component:
         rx.cond(
                 ChatState.current_question_index >= 0, 
                 action_bar(),
-                rx.button("Save", on_click=State.save_user_profile())
+                rx.button("Save", on_click=State.save_user_profile()),
+                #rx.button("Restart", on_click=ChatState.save_user_profile())
             ),
     )
 
 
 app = rx.App(
         theme=rx.theme(
-        has_background=True,
         radius="large",
         accent_color="blue",
     )
