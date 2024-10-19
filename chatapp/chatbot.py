@@ -33,18 +33,18 @@ def chat() -> rx.Component:
 
 def action_bar() -> rx.Component:
     return rx.hstack(
-                rx.input(
-                    value=State.question,
-                    placeholder="Answer the question above.",
-                    on_change=State.set_question,
-                    style=style.input_style,
-                ),
-                rx.button(
-                    "Respond",
-                    on_click=State.answer,
-                    style=style.button_style,
-                ),
-            )
+        rx.input(
+            value=State.question,
+            placeholder="Answer the question above.",
+            on_change=State.set_question,
+            style=style.input_style,
+        ),
+        rx.button(
+            "Respond",
+            on_click=State.answer,
+            style=style.button_style,
+        ),
+    )
 
 def chatmodel() -> rx.Component:
     return rx.center(
