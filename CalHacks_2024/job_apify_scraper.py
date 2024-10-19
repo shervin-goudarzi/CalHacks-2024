@@ -2,12 +2,14 @@ import os
 import google.generativeai as genai
 from apify_client import ApifyClient
 import json
+from dotenv import load_dotenv
+load_dotenv()
 
 # Initialize the ApifyClient with your API token
-client = ApifyClient("apify_api_wOIxO9ITqQ9N2SjXH1qybkDUeGDnw64gYhmC")
+client = ApifyClient(os.environ["APIFY_API_KEY"])
 
 # Configure Gemini
-genai.configure(api_key="AIzaSyBlkAovzBE3rN-nqeC66Itc7kjzeGIf1lc")
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 def run_indeed_scraper(skills, zipcode):
     # Join skills into a query string for the position
@@ -18,7 +20,7 @@ def run_indeed_scraper(skills, zipcode):
         "country": "US",
         "location": zipcode,
         "position": skill_query,
-        "maxItems": 20,  # Limit the number of results for this example
+        "maxItems": 20,
         "includeUnfilteredResults": True
     }
     
@@ -28,7 +30,6 @@ def run_indeed_scraper(skills, zipcode):
     # Fetch job postings from the default dataset
     recommended_jobs = []
     for item in client.dataset(run["defaultDatasetId"]).iterate_items():
-        # You can add additional filtering here if needed
         recommended_jobs.append(item)
     
     return recommended_jobs
@@ -67,7 +68,7 @@ def get_gemini_recommendations(formatted_job_string, education, immigration_stat
     prompt = f"""The following is an aggregation JSON file of all potential jobs for an applicant. Each job is sepaarated by '#######'.
     The applicant's education is {education} and their current immigration status is {immigration_status}. 
     Out of these jobs find the top 10 jobs that are the most preferable for the given candidate given the education level and immigration status above. 
-    For each chosen job, neatly organize and output the Job title ('positionName'), the salary ('salary'), 
+    For each chosen job, make sure the jobs are outputted in a JSON format with the following job title ('positionName'), the salary ('salary'), 
     the job description ('description'), the company ('company'), the location ('location'), and the job URL ('url'). 
     Don't include any other extra information in the output. 
 
