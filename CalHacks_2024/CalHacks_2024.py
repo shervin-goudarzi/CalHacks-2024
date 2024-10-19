@@ -5,7 +5,6 @@ import time
 
 from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
-from chatapp.chatbot import chatmodel
 
 import reflex as rx
 
@@ -192,17 +191,18 @@ def protected() -> rx.Component:
 def chatbot() -> rx.Component:
     return rx.vstack(
         NavBar(),
-        rx.container(chatmodel()),
+        rx.text("put chatbot here"),
     )
+
 
 app = rx.App(
         theme=rx.theme(
+        appearance="light",
         has_background=True,
         radius="large",
         accent_color="blue",
     )
 )
-
 app.add_page(index)
 app.add_page(protected)
 app.add_page(chatbot)
