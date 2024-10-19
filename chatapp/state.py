@@ -130,39 +130,33 @@ class State(rx.State):
         if self.current_question_index >= len(self.questions):
             self.current_question_index = -1 
 
-def chatmodel(chatbot_state: State = State()) -> rx.Component:
+def chatmodel() -> rx.Component:
     return rx.vstack(
-        rx.box(
-            rx.foreach(
-                chatbot_state.chat_history,
-                lambda messages: rx.vstack(
-                    rx.box(
-                        rx.text(messages[0]),
-                        background_color="lightgrey",
-                        padding="1em",
-                        border_radius="5px",
-                    ),
-                    rx.box(
-                        rx.text(messages[1]),
-                        background_color="lightblue",
-                        padding="1em",
-                        border_radius="5px",
-                    ),
-                    width="100%",
+        rx.foreach(
+            State.chat_history,
+            lambda message: rx.box(
+                rx.text(message[1] if message[1] else message[0]),
+                text_align="left" if message[1] else "right",
+                color="blue" if message[1] else "green",
+                padding="1em",
+                border_radius="0.5em",
+                bg="lightgray" if message[1] else "lightgreen",
+                margin_y="0.5em",
+            )
+        ),
+        rx.cond(
+            State.current_question_index >= 0,
+            rx.vstack(
+                rx.input(
+                    value=State.question,
+                    placeholder="Type your answer here...",
+                    on_change=State.set_question,
                 ),
+                rx.button("Submit", on_click=State.answer),
             ),
-            padding="1em",
-            height="60vh",
-            overflow="auto",
+            rx.text("Survey completed. Thank you for your responses!")
         ),
-        rx.form(
-            rx.input(
-                placeholder="Type your answer here...",
-                id="question",
-                on_blur=chatbot_state.set_question,
-                is_disabled=chatbot_state.current_question_index == -1,
-            ),
-            rx.button("Send", type="submit", on_click=chatbot_state.answer),
-            width="100%",
-        ),
+        spacing="4",
+        width="100%",
+        max_width="600px",
     )
