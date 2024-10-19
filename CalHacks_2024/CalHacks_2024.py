@@ -54,7 +54,7 @@ class State(rx.State):
     @rx.var(cache=True)
     def protected_content(self) -> str:
         if self.token_is_valid:
-            return f"This content can only be viewed by a logged in User. Nice to see you {self.tokeninfo['name']}"
+            return f"Nice to see you {self.tokeninfo['name']}"
         return "Not logged in."
 
 
@@ -70,7 +70,6 @@ def user_info(tokeninfo: dict) -> rx.Component:
             rx.text(tokeninfo["email"]),
             align_items="flex-start",
         ),
-        rx.button("Logout", on_click=State.logout),
         padding="10px",
     )
 
@@ -98,20 +97,54 @@ def require_google_login(page) -> rx.Component:
     return _auth_wrapper
 
 
-def index():
-    return rx.vstack(
-        rx.heading("Google OAuth", size="lg"),
-        rx.link("Protected Page", href="/protected"),
+def index() -> rx.Component:
+    return rx.center(
+        rx.vstack(
+            rx.heading("Welcome to Immigrant Support Portal", size="2xl", color="teal.500"),
+            rx.text(
+                "This website is dedicated to providing resources and support for immigrants. "
+                "Our goal is to help you navigate the complexities of immigration and find the assistance you need.",
+                font_size="lg",
+                padding="20px",
+                text_align="center",
+            ),
+            rx.link("Login with Google", href="/login", font_size="lg", color="blue.500"),
+            spacing="20px",
+        ),
+        padding="50px",
     )
 
 
-@rx.page(route="/protected")
+def NavBar() -> rx.Component:
+    return rx.hstack(
+        rx.link("Home", href="/", font_size="lg", color="blue.500", padding="10px"),
+        rx.link("Chatbot", href="/chatbot", font_size="lg", color="blue.500", padding="10px"),
+        rx.link("Settings", href="/settings", font_size="lg", color="blue.500", padding="10px"),
+        rx.button("Logout", on_click=State.logout, font_size="lg", color="red.500", padding="10px"),
+        spacing="20px",
+        padding="10px",
+        background="gray.100",
+    )
+
+
+@rx.page(route="/login")
 @require_google_login
 def protected() -> rx.Component:
     return rx.vstack(
+        NavBar(),
         user_info(State.tokeninfo),
         rx.text(State.protected_content),
         rx.link("Home", href="/"),
+    )
+
+
+@rx.page(route="/chatbot")
+@require_google_login
+def chatbot() -> rx.Component:
+    return rx.vstack(
+        NavBar(),
+        user_info(State.tokeninfo),
+        rx.text("put chatbot here"),
     )
 
 
