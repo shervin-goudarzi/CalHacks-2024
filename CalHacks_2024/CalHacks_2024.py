@@ -8,6 +8,7 @@ from google.oauth2.id_token import verify_oauth2_token
 
 import reflex as rx
 
+from .layout import layout
 from .react_oauth_google import (
     GoogleOAuthProvider,
     GoogleLogin,
@@ -95,20 +96,22 @@ def require_google_login(page) -> rx.Component:
 
 
 def index() -> rx.Component:
-    return rx.center(
-        rx.vstack(
-            rx.heading("Welcome to Immigrant Support Portal", size="2xl", color="teal.500"),
-            rx.text(
-                "This website is dedicated to providing resources and support for immigrants. "
-                "Our goal is to help you navigate the complexities of immigration and find the assistance you need.",
-                font_size="lg",
-                padding="20px",
-                text_align="center",
+    return layout(
+        rx.center(
+            rx.vstack(
+                rx.heading("Welcome to Immigrant Support Portal", size="2xl", color="teal.500"),
+                rx.text(
+                    "This website is dedicated to providing resources and support for immigrants. "
+                    "Our goal is to help you navigate the complexities of immigration and find the assistance you need.",
+                    font_size="lg",
+                    padding="20px",
+                    text_align="center",
+                ),
+                rx.link("Login with Google", href="/home", font_size="lg", color="blue.500"),
+                spacing="20px",
             ),
-            rx.link("Login with Google", href="/home", font_size="lg", color="blue.500"),
-            spacing="20px",
-        ),
-        padding="50px",
+            padding="50px",
+        )
     )
 
 
