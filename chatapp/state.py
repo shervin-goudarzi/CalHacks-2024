@@ -6,6 +6,15 @@ from firebase_admin import credentials, firestore
 from dotenv import load_dotenv
 load_dotenv()
 
+# Initialize Firebase (do this only once, typically at the start of your application)
+# Get the directory of the current script
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Construct the path to the credentials file
+cred_path = os.path.join(current_dir, "..", "firebase-credentials.json")
+cred = credentials.Certificate(cred_path)
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+
 class State(rx.State):
     # The current question being asked.
     question: str
