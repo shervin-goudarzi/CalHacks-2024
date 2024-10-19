@@ -21,6 +21,7 @@ class State(rx.State):
 
     def on_success(self, id_token: dict):
         self.id_token_json = json.dumps(id_token)
+        return rx.redirect("/home")
 
     @rx.var(cache=True)
     def tokeninfo(self) -> dict[str, str]:
@@ -39,6 +40,7 @@ class State(rx.State):
 
     def logout(self):
         self.id_token_json = ""
+        return rx.redirect("/")
 
     @rx.var
     def token_is_valid(self) -> bool:
@@ -54,7 +56,7 @@ class State(rx.State):
     @rx.var(cache=True)
     def protected_content(self) -> str:
         if self.token_is_valid:
-            return f"Nice to see you {self.tokeninfo['name']}"
+            return f"This content can only be viewed by a logged in User. Nice to see you {self.tokeninfo['name']}"
         return "Not logged in."
 
 
@@ -67,9 +69,9 @@ def user_info(tokeninfo: dict) -> rx.Component:
         ),
         rx.vstack(
             rx.heading(tokeninfo["name"], size="md"),
-            rx.text(tokeninfo["email"]),
             align_items="flex-start",
         ),
+        rx.button("Logout", on_click=State.logout),
         padding="10px",
     )
 
@@ -108,7 +110,7 @@ def index() -> rx.Component:
                 padding="20px",
                 text_align="center",
             ),
-            rx.link("Login with Google", href="/login", font_size="lg", color="blue.500"),
+            rx.link("Login with Google", href="/home", font_size="lg", color="blue.500"),
             spacing="20px",
         ),
         padding="50px",
@@ -117,24 +119,27 @@ def index() -> rx.Component:
 
 def NavBar() -> rx.Component:
     return rx.hstack(
-        rx.link("Home", href="/", font_size="lg", color="blue.500", padding="10px"),
-        rx.link("Chatbot", href="/chatbot", font_size="lg", color="blue.500", padding="10px"),
-        rx.link("Settings", href="/settings", font_size="lg", color="blue.500", padding="10px"),
-        rx.button("Logout", on_click=State.logout, font_size="lg", color="red.500", padding="10px"),
-        spacing="20px",
+        # Center the navigation links
+        rx.hstack(
+            rx.link("Home", href="/", font_size="lg", color="blue.500", padding="10px"),
+            rx.link("Chatbot", href="/chatbot", font_size="lg", color="blue.500", padding="10px"),
+            rx.link("Settings", href="/settings", font_size="lg", color="blue.500", padding="10px"),
+            spacing="20px",
+            padding="10px",
+        ),
+        rx.spacer(),  # Push profile info to the right
+        # Profile information aligned to the right
+        user_info(State.tokeninfo),
         padding="10px",
-        background="gray.100",
+        justify="center",  # Center the entire navbar horizontally
     )
 
 
-@rx.page(route="/login")
+@rx.page(route="/home")
 @require_google_login
 def protected() -> rx.Component:
     return rx.vstack(
         NavBar(),
-        user_info(State.tokeninfo),
-        rx.text(State.protected_content),
-        rx.link("Home", href="/"),
     )
 
 
@@ -143,10 +148,18 @@ def protected() -> rx.Component:
 def chatbot() -> rx.Component:
     return rx.vstack(
         NavBar(),
-        user_info(State.tokeninfo),
         rx.text("put chatbot here"),
     )
 
 
-app = rx.App()
+app = rx.App(
+        theme=rx.theme(
+        appearance="light",
+        has_background=True,
+        radius="large",
+        accent_color="teal",
+    )
+)
 app.add_page(index)
+app.add_page(protected)
+app.add_page(chatbot)
