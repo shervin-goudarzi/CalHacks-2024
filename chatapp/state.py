@@ -45,6 +45,7 @@ class State(rx.State):
         
         verification_result = response.choices[0].message.content
         is_valid = verification_result.lower().startswith("valid")
+        print(self.immigration_status, self.when_moved, self.education, self.skills, self.location)
         return is_valid, verification_result
 
     async def answer(self):
