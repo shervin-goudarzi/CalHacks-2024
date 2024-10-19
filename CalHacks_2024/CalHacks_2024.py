@@ -7,6 +7,7 @@ from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
 
 import reflex as rx
+from chatapp.chatbot import chatmodel
 
 from .react_oauth_google import (
     GoogleOAuthProvider,
@@ -220,7 +221,7 @@ def protected() -> rx.Component:
 def chatbot() -> rx.Component:
     return rx.vstack(
         NavBar(),
-        rx.text("put chatbot here"),
+        rrx.container(chatmodel()),
     )
 
 
