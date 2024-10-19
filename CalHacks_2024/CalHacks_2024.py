@@ -5,10 +5,12 @@ import time
 
 from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
-from firebase_admin import firestore
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 import reflex as rx
 from chatapp.chatbot import chatmodel
+from chatapp.chatbot import State as ChatState
 
 from .react_oauth_google import (
     GoogleOAuthProvider,
@@ -17,8 +19,14 @@ from .react_oauth_google import (
 
 CLIENT_ID = "1015718854739-uhoa4d0mu7geqhumisq993171fqedf3d.apps.googleusercontent.com"
 
-# class State(rx.State):
-#     """The app state."""
+# Initialize Firebase (do this only once, typically at the start of your application)
+# Get the directory of the current script
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Construct the path to the credentials file
+cred_path = os.path.join(current_dir, "..", "firebase-credentials.json")
+cred = credentials.Certificate(cred_path)
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 class State(rx.State):
     id_token_json: str = rx.LocalStorage()
