@@ -34,6 +34,7 @@ class State(rx.State):
                 "skills": self.skills,
                 "zipcode": self.location,
             }
+            print('here!')
             await self.db.collection("users").document(self.user_id).set(user_data)
 
     # Keep track of the chat history as a list of (question, answer) tuples.
