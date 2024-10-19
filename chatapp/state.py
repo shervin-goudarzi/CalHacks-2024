@@ -1,6 +1,8 @@
 import reflex as rx
 from openai import AsyncOpenAI
 import os
+import firebase_admin
+from firebase_admin import credentials, firestore
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -75,35 +77,4 @@ class State(rx.State):
 
         # If we've finished the survey, disable further input
         if self.current_question_index >= len(self.questions):
-            self.current_question_index = -1 
-
-def chatmodel() -> rx.Component:
-    return rx.vstack(
-        rx.foreach(
-            State.chat_history,
-            lambda message: rx.box(
-                rx.text(message[1] if message[1] else message[0]),
-                text_align="left" if message[1] else "right",
-                color="blue" if message[1] else "green",
-                padding="1em",
-                border_radius="0.5em",
-                bg="lightgray" if message[1] else "lightgreen",
-                margin_y="0.5em",
-            )
-        ),
-        rx.cond(
-            State.current_question_index >= 0,
-            rx.vstack(
-                rx.input(
-                    value=State.question,
-                    placeholder="Type your answer here...",
-                    on_change=State.set_question,
-                ),
-                rx.button("Submit", on_click=State.answer),
-            ),
-            rx.text("Survey completed. Thank you for your responses!")
-        ),
-        spacing="4",
-        width="100%",
-        max_width="600px",
-    )
+            self.current_question_index = -1
