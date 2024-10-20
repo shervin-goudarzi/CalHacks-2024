@@ -25,8 +25,37 @@ def qa(question: str, answer: str) -> rx.Component:
 
 def documents() -> rx.Component:
     return rx.center(
-        rx.text(State.immigration_info),
+        rx.vstack(
+            rx.text(State.current_status),
+            rx.container(
+                rx.foreach(State.next_steps, 
+                    lambda step: rx.text(step)),
+            ),
+            rx.foreach(State.required_documents,
+                lambda doc: rx.text(doc)),
+            rx.text(State.additional_info),
+        ),
         width="100%",
+    )
+
+def documents_formarea() -> rx.Component:
+    return rx.vstack(
+        docu_chat(),
+        rx.hstack(
+            rx.input(
+                placeholder="Enter your form code here.",
+                value=State.form_code,
+                style=style.input_style,
+                on_change=State.set_form_code,
+            ),
+            rx.button(
+                "Submit",
+                on_click=State.answer,
+                style=style.button_style,
+            ),
+            padding="10px",
+            width="100%",
+        ),
     )
 
 def docu_chat() -> rx.Component:
@@ -37,26 +66,11 @@ def docu_chat() -> rx.Component:
         )
     )
 
-def docu_action_bar() -> rx.Component:
-    return rx.hstack(
-        rx.input(
-            value=State.question,
-            placeholder="Answer the question above.",
-            on_change=State.set_question,
-            style=style.input_style,
-        ),
-        rx.button(
-            "Respond",
-            on_click=State.answer,
-            style=style.button_style,
-        ),
-    )
-
 def docu_chatmodel() -> rx.Component:
     return rx.center(
         rx.vstack(
             docu_chat(),
-            docu_action_bar(),
+            documents_formarea(),
             align="center",
             margin_top="20vh"
         )

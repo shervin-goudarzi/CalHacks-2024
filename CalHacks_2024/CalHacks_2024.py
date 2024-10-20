@@ -18,7 +18,7 @@ from typing import Dict, Any
 
 from documentation.documentation_help import State as DocumentationState
 from jobs.job_scraper import State as JobState
-from documentation.documentation_components import documents
+from documentation.documentation_components import documents, documents_formarea
 from jobs.jobs_components import jobs
 
 
@@ -184,13 +184,13 @@ def index() -> rx.Component:
                 """,
                 font_size="lg",
                 padding="20px",
-                text_align="center",
+                text_align="left",
             ),
             rx.link("Login with Google", href="/chatbot", font_size="lg", color="blue.500"),
             spacing="20px",
         ),
         padding="50px",
-        background="""radial-gradient(circle at 15% 8%, rgba(255, 193, 7, 0.2), hsla(0, 0%, 100%, 0) 25%),
+        background="""center/cover radial-gradient(circle at 15% 8%, rgba(255, 193, 7, 0.2), hsla(0, 0%, 100%, 0) 25%),
             radial-gradient(circle at 75% 20%, rgba(33, 150, 243, 0.18), hsla(0, 0%, 100%, 0) 30%),
             radial-gradient(circle at 30% 65%, rgba(76, 175, 80, 0.22), hsla(0, 0%, 100%, 0) 45%),
             radial-gradient(circle at 85% 80%, rgba(233, 30, 99, 0.15), hsla(0, 0%, 100%, 0) 35%);"""
@@ -255,6 +255,7 @@ def documents_page() -> rx.Component:
                     State.old_user,
                     rx.container(
                         documents(),
+                        documents_formarea(),
                         on_mount=DocumentationState.get_immigration_info(State.immigration_status),
                     ),
                     rx.container(
@@ -356,6 +357,9 @@ app = rx.App(
         appearance="light",
     )
 )
+
 app.add_page(index)
 app.add_page(protected)
 app.add_page(chatbot)
+app.add_page(documents_page)
+app.add_page(jobs_page)

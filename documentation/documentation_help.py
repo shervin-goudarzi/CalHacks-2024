@@ -15,30 +15,30 @@ load_dotenv()
 class State(rx.State):
     immigration_status: str = ""
     immigration_info: str = ""
+    current_status: str = ""
+    next_steps: list = []
+    required_documents: list = []
+    additional_info: str = ""
     form_code: str = ""
-    chat_history: list = []
+    chat_history: list[tuple[str, str]] = [("", "Please enter a form code for your immigration document to get started.")]
 
     def get_formatted_immigration_info(self, immigration_info_json):
         if not immigration_info_json:
             return "No immigration information available."
         
         info = immigration_info_json
-        formatted_text = f"Current Status: {info['current_status']}\n\n"
+        self.current_status = f"Current Status: {info['current_status']}\n\n"
         
-        formatted_text += "Next Steps:\n"
         for step in info['next_steps']:
-            formatted_text += f"- {step['step']}: {step['description']}\n"
-        
-        formatted_text += "\nRequired Documents:\n"
+            self.next_steps.append(f"- {step['step']}: {step['description']}\n")
+ 
         try:
-            for doc, desc in info['required_documents_to_fill'][0].items():
-                formatted_text += f"- {doc}: {desc}\n"
+            for doc, desc in info['required_documents_to_fill']:
+                self.required_documents.append(f"- {doc}: {desc}\n")
         except:
-            pass
+            self.required_documents = ["No required documents found."]
 
-        formatted_text += f"\nAdditional Information: {info['additional_info']}"
-        
-        self.immigration_info = formatted_text
+        self.additional_info += f"\nAdditional Information: {info['additional_info']}"
 
     def get_immigration_info(self, status):
         # Configure Gemini
@@ -159,33 +159,37 @@ class State(rx.State):
         # Initial message to set the context
         initial_prompt = f"You are an assistant helping with the instructions and questions for form {form_code}. The instructions have been uploaded as a PDF. Please provide a brief summary of the document."
         response = chat.send_message([sample_file, initial_prompt])
-        print("Assistant: " + response.text)
+        self.chat_history.append(self.form_code, "")
+        self.chat_history.append("", response.text)
 
         # Start the conversation loop
-        while True:
-            user_input = input("\nYou: ")
-            if user_input.lower() in ['exit', 'quit', 'bye']:
-                print("Assistant: Goodbye! If you have any more questions, feel free to ask.")
-                break
+        # i = 0
+        # prev = self.form_code
+        # while i < 4:
+        #     if self.form_code.lower() in ['exit', 'quit', 'bye']:
+        #         print("Assistant: Goodbye! If you have any more questions, feel free to ask.")
+        #         i = 5
+        #         break
+        #     if self.form_code != prev:
+        #         # Send user's message and get response
+        #         response = chat.send_message(self.form_code)
+        #         self.chat_history.append((self.form_code, ""))
+        #         self.chat_history.append(("", response.text))
+        #         i += 1
 
-            # Send user's message and get response
-            response = chat.send_message(user_input)
-            print("Assistant: " + response.text)
-
-    def main(self):
-        status = input("Enter your immigration status: ")
-        info = self.get_immigration_info(status)
-        self.display_immigration_info(info)
+    def answer(self):
         # read_and_parse_pdf("../Documents/i-129.pdf")
         # input_pdf_path = '../test_Documents/i-485-test.pdf'
         # form_code = extract_form_code(input_pdf_path)
-        form_code = input("What form do you need help with?")
         file_out = ""
         documents_dir = 'Documents'
         for file in os.listdir(documents_dir):
             file_path = os.path.join(documents_dir, file)
-            if file.endswith('.pdf') and form_code.lower() in file:
+            if file.endswith('.pdf') and self.form_code.lower() in file:
                 file_out = file
                 break
-        instructions_pdf = os.path.join(documents_dir, file_out)
-        self.help_with_document(instructions_pdf, form_code)
+        try:
+            instructions_pdf = os.path.join(documents_dir, file_out)
+            self.help_with_document(instructions_pdf, self.form_code)
+        except:
+            pass
