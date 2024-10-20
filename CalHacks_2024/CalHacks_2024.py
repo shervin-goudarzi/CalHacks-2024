@@ -202,34 +202,37 @@ def navbar_link(name: str, href: str) -> rx.Component:
     )
 
 def NavBar() -> rx.Component:
-    return rx.box(
-        rx.hstack(
+    return rx.html(rx.body(
+        rx.box(
             rx.hstack(
-                rx.text("Product_Name", font_size="2xl", font_weight="bold", padding="10px"),
+                rx.hstack(
+                    rx.text("Product_Name", font_size="2xl", font_weight="bold", padding="10px"),
+                    align_items="center",
+                ),
+                rx.hstack(
+                    navbar_link("Profile", "/chatbot"),
+                    navbar_link("Documents", "/documents"),
+                    spacing="20px",
+                ),
+                rx.menu.root(
+                    rx.menu.trigger(
+                        user_info(State.tokeninfo),
+                    ),
+                    rx.menu.content(
+                        rx.menu.item(
+                            rx.button("Logout", on_click=State.logout)
+                        ),
+                    ),
+                    justify="end",
+                ),
+                justify="between",
                 align_items="center",
             ),
-            rx.hstack(
-                navbar_link("Profile", "/chatbot"),
-                navbar_link("Documents", "/documents"),
-                spacing="20px",
-            ),
-            rx.menu.root(
-                rx.menu.trigger(
-                    user_info(State.tokeninfo),
-                ),
-                rx.menu.content(
-                    rx.menu.item(
-                        rx.button("Logout", on_click=State.logout)
-                    ),
-                ),
-                justify="end",
-            ),
-            justify="between",
-            align_items="center",
+            padding="10px",
+            width="100%",
         ),
-        padding="10px",
-        width="100%",
-    )
+        lang="en",
+    ))
 
 
 @rx.page(route="/home")
