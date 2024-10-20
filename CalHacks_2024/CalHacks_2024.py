@@ -54,9 +54,7 @@ class State(ChatState):
         decoded_token = jwt.decode(id_token, options={"verify_signature": False})
         # Extract the 'sub' claim
         self.user_id = decoded_token['sub']
-        if self.load_user_profile():
-            self.old_user = True
-            return rx.redirect('/chatbot')
+        self.load_user_profile()
         return rx.redirect("/chatbot")
 
     @rx.var(cache=True)
@@ -130,8 +128,7 @@ class State(ChatState):
             self.when_moved = user_data.get('when_moved', '')
             self.skills = user_data.get('skills', [])
             self.education = user_data.get('education', '')
-            return True
-        return False
+            self.old_user = True
     
     def redirect_to_chatbot(self):
         return rx.redirect('/chatbot')
@@ -239,7 +236,7 @@ def protected() -> rx.Component:
         NavBar(),
     )
 
-@rx.page(route="/documents")
+@rx.page(route="/documents",on_load=State.load_user_profile)
 @require_google_login
 def documents_page() -> rx.Component:
     return rx.vstack(
@@ -247,7 +244,7 @@ def documents_page() -> rx.Component:
         rx.center(
             rx.vstack(
                 rx.cond(
-                    State.load_user_profile(),
+                    State.old_user,
                     rx.container(
                         documents(),
                         on_mount=DocumentationState.get_immigration_info(State.immigration_status),
@@ -266,22 +263,30 @@ def documents_page() -> rx.Component:
         spacing="20px",
     )
 
-@rx.page(route="/chatbot")
+@rx.page(route="/chatbot",on_load=State.load_user_profile)
 @require_google_login
 def chatbot() -> rx.Component:
     return rx.vstack(
         NavBar(),
             rx.center(
                 rx.vstack(
-                    chat(),
                     rx.cond(
-                        ChatState.current_question_index >= 0, 
-                        action_bar(),
+                        State.old_user,
                         rx.container(
-                            rx.button("Save", on_click=State.save_user_profile()),
-                        )
+                            rx.text("Welcome back!"),
+                        ),
+                        rx.container(
+                            chat(),
+                            rx.cond(
+                                ChatState.current_question_index >= 0, 
+                                action_bar(),
+                                rx.container(
+                                    rx.button("Save", on_click=State.save_user_profile()),
+                                )
+                            ),
+                            spacing="20px",
+                        ),
                     ),
-                    spacing="20px",
                 ),
                 width="100%",
             ),
