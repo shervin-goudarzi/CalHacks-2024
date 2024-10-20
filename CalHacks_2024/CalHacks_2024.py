@@ -108,13 +108,13 @@ class State(ChatState):
         doc = doc_ref.get()
         if doc.exists:
             user_data = doc.to_dict()
-            self.user_location = user_data.get('location', '')
-            self.visa_status = user_data.get('immigration_status', '')
+            self.location = user_data.get('location', '')
+            self.immigration_status = user_data.get('immigration_status', '')
             self.when_moved = user_data.get('when_moved', '')
             self.skills = user_data.get('skills', [])
             self.education = user_data.get('education', [])
-            self.housing_situation = user_data.get('housing_situation', '')
-            self.need = user_data.get('need', '')
+            return True
+        return False
 
 
 def user_info(tokeninfo: dict) -> rx.Component:
@@ -166,6 +166,10 @@ def index() -> rx.Component:
             spacing="20px",
         ),
         padding="50px",
+        background="""radial-gradient(circle at 15% 8%, rgba(255, 193, 7, 0.2), hsla(0, 0%, 100%, 0) 25%),
+            radial-gradient(circle at 75% 20%, rgba(33, 150, 243, 0.18), hsla(0, 0%, 100%, 0) 30%),
+            radial-gradient(circle at 30% 65%, rgba(76, 175, 80, 0.22), hsla(0, 0%, 100%, 0) 45%),
+            radial-gradient(circle at 85% 80%, rgba(233, 30, 99, 0.15), hsla(0, 0%, 100%, 0) 35%);"""
     )
 
 
@@ -260,18 +264,18 @@ def documents() -> rx.Component:
 def chatbot() -> rx.Component:
     return rx.vstack(
         NavBar(),
-        rx.center(
-            rx.vstack(
-                chat(),
-                rx.cond(
-                    ChatState.current_question_index >= 0, 
-                    action_bar(),
-                    rx.button("Save", on_click=State.save_user_profile())
+            rx.center(
+                rx.vstack(
+                    chat(),
+                    rx.cond(
+                        ChatState.current_question_index >= 0, 
+                        action_bar(),
+                        rx.button("Save", on_click=State.save_user_profile())
+                    ),
+                    spacing="20px",
                 ),
-                spacing="20px",
+                width="100%",
             ),
-            width="100%",
-        ),
         width="100%",
         spacing="20px",
     )
