@@ -1,9 +1,7 @@
 import reflex as rx
 from openai import AsyncOpenAI
 import os
-import firebase_admin
 from dotenv import load_dotenv
-import json
 
 load_dotenv()
 
