@@ -10,8 +10,9 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 import reflex as rx
-from chatapp.chatbot import chat, action_bar, chatmodel
+from chatapp.chatbot import chat, action_bar, chatmodel, reset_button
 from chatapp.chatbot import State as ChatState
+import chatapp.style as style
 from typing import Dict, Any
 
 from documentation.documentation_help import State as DocumentationState
@@ -109,6 +110,7 @@ class State(ChatState):
         }
         self.get_db().collection('users').document(self.user_id).set(user_data)
         self.old_user = True
+        ChatState.current_question_index = 0
         return rx.redirect('/chatbot')
 
     def reset_user_profile(self):
@@ -274,33 +276,14 @@ def chatbot() -> rx.Component:
         NavBar(),
             rx.center(
                 rx.vstack(
-                    rx.cond(
-                        State.old_user,
-                        rx.container(
-                            rx.text("Welcome back! Would you like to update your profile?"),
-                            chat(),
-                            rx.cond(
-                                ChatState.current_question_index >= 0, 
-                                action_bar(),
-                                rx.container(
-                                    rx.button("Save", on_click=State.save_user_profile()),
-                                    rx.button("Reset", on_click=State.reset_user_profile()),
-                                )
-                            ),
-                            spacing="20px",
+                    rx.container(
+                        chat(),
+                        rx.cond(
+                            State.current_question_index >= 0,
+                            action_bar(),
+                            action_bar_after_done(),
                         ),
-                        rx.container(
-                            chat(),
-                            rx.cond(
-                                ChatState.current_question_index >= 0, 
-                                action_bar(),
-                                rx.container(
-                                    rx.button("Save", on_click=State.save_user_profile()),
-                                    rx.button("Reset", on_click=State.reset_user_profile()),
-                                )
-                            ),
-                            spacing="20px",
-                        ),
+                        spacing="20px",
                     ),
                 ),
                 width="100%",
@@ -334,6 +317,23 @@ def jobs_page() -> rx.Component:
         ),
         width="100%",
         spacing="20px",
+    )
+
+def action_bar_after_done() -> rx.Component:
+    return rx.hstack(
+        rx.input(
+            value=State.question,
+            placeholder="Answer the question above.",
+            on_change=State.set_question,
+            style=style.input_style,
+        ),
+        rx.button(
+            "Finish",
+            on_click=State.save_user_profile,
+            style=style.button_style,
+            color_scheme="green",
+        ),
+        reset_button()
     )
 
 
