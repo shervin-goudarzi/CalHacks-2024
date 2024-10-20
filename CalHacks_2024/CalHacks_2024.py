@@ -40,6 +40,7 @@ class State(ChatState):
 
     id_token_json: str = rx.LocalStorage()
     user_id: str = ""
+    old_user: bool = False
 
     def on_success(self, id_token: dict):
         self.id_token_json = json.dumps(id_token)
@@ -50,7 +51,10 @@ class State(ChatState):
         decoded_token = jwt.decode(id_token, options={"verify_signature": False})
         # Extract the 'sub' claim
         self.user_id = decoded_token['sub']
-        return rx.redirect("/home")
+        if self.load_user_profile():
+            self.old_user = True
+            return rx.redirect('/chatbot')
+        return rx.redirect("/chatbot")
 
     @rx.var(cache=True)
     def tokeninfo(self) -> dict[str, str]:
@@ -101,6 +105,15 @@ class State(ChatState):
             'education': self.education,
         }
         self.get_db().collection('users').document(self.user_id).set(user_data)
+        self.old_user = True
+
+    def reset_user_profile(self):
+        self.location = ''
+        self.immigration_status = ''
+        self.when_moved = ''
+        self.skills = []
+        self.education = ''
+        ChatState.current_question_index = 0
 
     def load_user_profile(self):
         user_id = self.tokeninfo.get('sub')
@@ -112,7 +125,7 @@ class State(ChatState):
             self.immigration_status = user_data.get('immigration_status', '')
             self.when_moved = user_data.get('when_moved', '')
             self.skills = user_data.get('skills', [])
-            self.education = user_data.get('education', [])
+            self.education = user_data.get('education', '')
             return True
         return False
 
@@ -190,8 +203,7 @@ def NavBar() -> rx.Component:
                     align_items="center",
                 ),
                 rx.hstack(
-                    navbar_link("Home", "/home"),
-                    navbar_link("Chatbot", "/chatbot"),
+                    navbar_link("Profile", "/chatbot"),
                     navbar_link("Documents", "/documents"),
                     spacing="20px",
                 ),
@@ -270,7 +282,10 @@ def chatbot() -> rx.Component:
                     rx.cond(
                         ChatState.current_question_index >= 0, 
                         action_bar(),
-                        rx.button("Save", on_click=State.save_user_profile())
+                        rx.container(
+                            rx.button("Save", on_click=State.save_user_profile()),
+                            rx.button("Reset", on_click=State.reset_user_profile())
+                        )
                     ),
                     spacing="20px",
                 ),

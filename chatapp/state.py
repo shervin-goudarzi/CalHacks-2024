@@ -1,6 +1,7 @@
 import reflex as rx
 from openai import AsyncOpenAI
 import os
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -58,8 +59,8 @@ class State(rx.State):
         response = await client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are an advanced AI assistant. The user has listed skills as part of a survey. Your task is to extract the individual skills from their response and output them as an array of skills."},
-                {"role": "user", "content": f"Extract the skills from the following text: {skills_text}, in an array"}
+                {"role": "system", "content": "You are an advanced AI assistant. The user has listed their skills as part of a survey. Your task is to extract the individual skills from their response and output them as an array of skills."},
+                {"role": "user", "content": f"Extract the skills from the following text: {skills_text}, in an array formatted like ['skill1', 'skill2', 'skill3', etc] with every skill that the user has listed."}
             ],
             temperature=0.9
         )
