@@ -1,5 +1,6 @@
 import reflex as rx
 from openai import AsyncOpenAI
+import google.generativeai as genai
 import os
 import json
 from dotenv import load_dotenv
@@ -17,6 +18,9 @@ class State(rx.State):
     skills: list[str] = [""]
     location: str = ""
 
+    # Greeting message for the user
+    greeting_message: str = "Hello! I’m here to assist you with your personalized immigration experience. I’m really excited to help and welcome to the U.S.A! 😊 Let's begin!"
+
     questions: list[str] = [
         "What's your current immigration status?",
         "What date did you come to the US?",
@@ -26,41 +30,39 @@ class State(rx.State):
     ]
 
     # Keep track of the chat history as a list of (question, answer) tuples.
-    chat_history: list[tuple[str, str]] = [("", "What's your current immigration status?")]
+    chat_history: list[tuple[str, str]] = [("", greeting_message), ("", "What's your current immigration status?")]
 
     # Index of the current question
     current_question_index: int = 0
 
-    async def verify_input(self, question: str, answer: str) -> tuple[bool, str]:   
+    async def verify_input(self, question: str, answer: str) -> tuple[bool, str]:
         client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
         response = await client.chat.completions.create(
-            model="gpt-4o",  # Use the appropriate model
+            model="gpt-4",  # Use the appropriate model
             messages=[
                 {"role": "system", "content": "You are a very understanding and empathetic AI assistant verifying user input for an immigration survey. Respond with only the word 'valid' verbatim if the input is appropriate for the question, otherwise explain to the user what they should type instead very empathetically and very clearly. Assume these individuals don't speak English as a first language."},
                 {"role": "user", "content": f"Question: {question}\nUser's answer: {answer}\nIs this a valid response?"}
             ],
-            temperature=0.7
+            temperature=1.2
         )
         
         verification_result = response.choices[0].message.content
         is_valid = verification_result.lower().startswith("valid")
         return is_valid, verification_result
 
-    async def get_skills(self, skills_text: str) -> list[str]: 
+    async def get_skills(self, skills_text: str) -> list[str]:
         client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
         response = await client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are an advanced AI assistant. The user has listed their skills as part of a survey. Your task is to extract the individual skills from their response and output them as an array of skills."},
-                {"role": "user", "content": f"Extract the skills from the following text: {skills_text}, in an array formatted like ['skill1', 'skill2', 'skill3', etc] with every skill that the user has listed."}
+                {"role": "system", "content": "You are an advanced AI assistant. The user has listed skills as part of a survey. Your task is to extract the individual skills from their response and output them as an array of skills."},
+                {"role": "user", "content": f"Extract the skills from the following text: {skills_text}, in an array"}
             ],
-            temperature=0.9
+            temperature=1.2
         )
-        print(response.choices[0].message.content)
         skills_array = json.loads(response.choices[0].message.content)
-        print(skills_array)
         return skills_array
 
     async def answer(self):
@@ -69,13 +71,17 @@ class State(rx.State):
         if not self.question:
             return
         
+        # Verify user input
         validity, interpretation = await self.verify_input(self.questions[self.current_question_index], self.question)
         if not validity:
-            self.chat_history.append(("", interpretation))
+            # self.chat_history.append((self.questions[self.current_question_index], self.question))  # Store invalid response
+            self.chat_history.append((self.question, ""))
+            self.chat_history.append(("", interpretation))  # Add the feedback on invalid input
+            self.question = ""
             yield
             return
 
-        # Add user's response to chat history
+        # Add user's valid response to chat history
         self.chat_history.append((self.question, ""))
 
         # Prepare the next question or finish the survey
@@ -85,8 +91,9 @@ class State(rx.State):
         else:
             system_message = "Thank the user for completing the survey and provide a brief summary of their responses."
 
+        # AI generates a response for the next question or closing
         session = await client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a very understanding, compassionate, and empathetic AI assistant conducting an immigration survey. Provide helpful responses based on the user's answers."},
                 {"role": "user", "content": f"User's response to '{self.questions[self.current_question_index]}': {self.question}"},
@@ -96,14 +103,13 @@ class State(rx.State):
             stream=True,
         )
 
-        # Add to the answer as the chatbot responds.
+        # Store the chatbot's response
         answer = ""
 
-        # Clear the question input.
+        # Clear the question input
         self.prev_question = self.question
         self.question = ""
-        # Yield here to clear the frontend input before continuing.
-        yield
+        yield  # Clear the frontend input before continuing
 
         async for item in session:
             if hasattr(item.choices[0].delta, "content"):
@@ -116,6 +122,7 @@ class State(rx.State):
                 )
                 yield
 
+        # Update state based on user responses
         if not self.current_question_index:
             self.immigration_status = self.prev_question
         elif self.current_question_index == 1:
@@ -127,10 +134,9 @@ class State(rx.State):
         else:
             self.location = self.prev_question
 
-        # Move to the next question after processing the current one
+        # Move to the next question
         self.current_question_index += 1
 
-        # If we've finished the survey, disable further input
+        # If the survey is finished, disable further input
         if self.current_question_index >= len(self.questions):
-            self.current_question_index = -1 
-
+            self.current_question_index = -1
