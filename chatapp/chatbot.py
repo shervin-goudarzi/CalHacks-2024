@@ -37,6 +37,14 @@ def chat() -> rx.Component:
         )
     )
 
+def reset_button():
+    return rx.button(
+        "Reset/Update Profile",
+        on_click=State.reset_chat,
+        color_scheme="orange",
+        style=style.button_style
+    )
+
 def action_bar() -> rx.Component:
     return rx.hstack(
         rx.input(
@@ -46,10 +54,16 @@ def action_bar() -> rx.Component:
             style=style.input_style,
         ),
         rx.button(
-            "Respond",
+            rx.cond(
+                State.current_question_index <= -1,
+                "Finish",
+                "Respond",
+            ),
+            color="green",
             on_click=State.answer,
             style=style.button_style,
         ),
+        reset_button()
     )
 
 def chatmodel() -> rx.Component:
