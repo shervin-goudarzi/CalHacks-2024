@@ -17,7 +17,7 @@ from typing import Dict, Any
 
 from documentation.documentation_help import State as DocumentationState
 from jobs.job_apify_scraper import State as JobState
-from documentation.documentation_components import documents
+from documentation.documentation_components import documents, documents_formarea
 from jobs.jobs_components import jobs
 
 from .react_oauth_google import (
@@ -253,6 +253,7 @@ def documents_page() -> rx.Component:
                     State.old_user,
                     rx.container(
                         documents(),
+                        documents_formarea(),
                         on_mount=DocumentationState.get_immigration_info(State.immigration_status),
                     ),
                     rx.container(
@@ -354,6 +355,7 @@ app = rx.App(
         appearance="light",
     )
 )
+
 app.add_page(index)
 app.add_page(protected)
 app.add_page(chatbot)
