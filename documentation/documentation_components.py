@@ -45,6 +45,7 @@ def documents_formarea() -> rx.Component:
                 placeholder="Enter your form code here.",
                 value=State.form_code,
                 style=style.input_style,
+                on_change=State.set_form_code,
             ),
             rx.button(
                 "Submit",

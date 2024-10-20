@@ -33,7 +33,7 @@ class State(rx.State):
             self.next_steps.append(f"- {step['step']}: {step['description']}\n")
  
         try:
-            for doc, desc in info['required_documents_to_fill'][0].items():
+            for doc, desc in info['required_documents_to_fill']:
                 self.required_documents.append(f"- {doc}: {desc}\n")
         except:
             self.required_documents = ["No required documents found."]
