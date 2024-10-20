@@ -357,3 +357,5 @@ app = rx.App(
 app.add_page(index)
 app.add_page(protected)
 app.add_page(chatbot)
+app.add_page(documents_page)
+app.add_page(jobs_page)
