@@ -7,12 +7,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-""" 
-Notes:
-- Make more conversational, interactive
-- Have a reset/update information component
-"""
-
 class State(rx.State):
     # The current question being asked
     question: str
@@ -47,7 +41,7 @@ class State(rx.State):
         response = await client.chat.completions.create(
             model="gpt-4",  # Use the appropriate model
             messages=[
-                {"role": "system", "content": "You are a very understanding, empathetic, and interactive AI assistant verifying user input for an immigration survey. Respond with only the word 'valid' verbatim if the input is appropriate for the question, otherwise explain to the user what they should type instead very empathetically and very clearly. Assume these individuals don't speak English as a first language."},
+                {"role": "system", "content": "You are a very understanding and empathetic AI assistant verifying user input for an immigration survey. Respond with only the word 'valid' verbatim if the input is appropriate for the question, otherwise explain to the user what they should type instead very empathetically and very clearly. Assume these individuals don't speak English as a first language."},
                 {"role": "user", "content": f"Question: {question}\nUser's answer: {answer}\nIs this a valid response?"}
             ],
             temperature=1.2

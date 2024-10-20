@@ -12,8 +12,6 @@ from firebase_admin import credentials, firestore
 import reflex as rx
 from chatapp.chatbot import chat, action_bar, chatmodel, reset_button
 from chatapp.chatbot import State as ChatState
-from voicemodel.cartesia import State as VoiceState
-from voicemodel.cartesia import voice_model
 import chatapp.style as style
 from typing import Dict, Any
 
@@ -119,7 +117,7 @@ class State(ChatState):
         self.location = ''
         self.immigration_status = ''
         self.when_moved = ''
-        self.skills = ['']
+        self.skills = []
         self.education = ''
         ChatState.current_question_index = 0
         ChatState.chat_history = []
@@ -206,38 +204,35 @@ def navbar_link(name: str, href: str) -> rx.Component:
     )
 
 def NavBar() -> rx.Component:
-    return rx.html(rx.body(
-        rx.box(
+    return rx.box(
+        rx.hstack(
             rx.hstack(
-                rx.hstack(
-                    rx.text("Product_Name", font_size="2xl", font_weight="bold", padding="10px"),
-                    align_items="center",
-                ),
-                rx.hstack(
-                    navbar_link("Profile", "/chatbot"),
-                    navbar_link("Documents", "/documents"),
-                    navbar_link("Job Postings", "/job_postings"),
-                spacing="20px",
-                ),
-                rx.menu.root(
-                    rx.menu.trigger(
-                        user_info(State.tokeninfo),
-                    ),
-                    rx.menu.content(
-                        rx.menu.item(
-                            rx.button("Logout", on_click=State.logout)
-                        ),
-                    ),
-                    justify="end",
-                ),
-                justify="between",
+                rx.text("Product_Name", font_size="2xl", font_weight="bold", padding="10px"),
                 align_items="center",
             ),
-            padding="10px",
-            width="100%",
+            rx.hstack(
+                navbar_link("Profile", "/chatbot"),
+                navbar_link("Documents", "/documents"),
+                navbar_link("Job Postings", "/job_postings"),
+                spacing="20px",
+            ),
+            rx.menu.root(
+                rx.menu.trigger(
+                    user_info(State.tokeninfo),
+                ),
+                rx.menu.content(
+                    rx.menu.item(
+                        rx.button("Logout", on_click=State.logout)
+                    ),
+                ),
+                justify="end",
+            ),
+            justify="between",
+            align_items="center",
         ),
-        lang="en",
-    ))
+        padding="10px",
+        width="100%",
+    )
 
 
 @rx.page(route="/home")
@@ -245,21 +240,6 @@ def NavBar() -> rx.Component:
 def protected() -> rx.Component:
     return rx.vstack(
         NavBar(),
-        rx.vstack(
-            rx.select(
-                ["English","French","German","Spanish","Portuguese","Chinese","Japanese","Hindi","Italian","Korean","Dutch","Polish","Russian","Swedish","Turkish"],
-                default_value="English",
-                value=VoiceState.language,
-                on_change=VoiceState.set_language,
-                name="select"
-            ),
-            rx.input(
-                value=VoiceState.transcript,
-                placeholder="Ask a question to our voice assistant.",
-                on_change=VoiceState.set_transcript
-            ),
-            voice_model()
-        ),
     )
 
 @rx.page(route="/documents",on_load=State.load_user_profile)
