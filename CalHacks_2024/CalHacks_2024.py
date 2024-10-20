@@ -102,6 +102,16 @@ class State(ChatState):
         }
         self.get_db().collection('users').document(self.user_id).set(user_data)
 
+    def reset_user_profile(self):
+        self.location = ''
+        self.immigration_status = ''
+        self.when_moved = ''
+        self.skills = []
+        self.education = []
+        ChatState.current_question_index = 0
+
+
+
     def load_user_profile(self):
         user_id = self.tokeninfo.get('sub')
         doc_ref = self.get_db().collection('users').document(user_id)
@@ -190,8 +200,7 @@ def NavBar() -> rx.Component:
                     align_items="center",
                 ),
                 rx.hstack(
-                    navbar_link("Home", "/home"),
-                    navbar_link("Chatbot", "/chatbot"),
+                    navbar_link("Profile", "/chatbot"),
                     navbar_link("Documents", "/documents"),
                     spacing="20px",
                 ),
@@ -270,7 +279,8 @@ def chatbot() -> rx.Component:
                     rx.cond(
                         ChatState.current_question_index >= 0, 
                         action_bar(),
-                        rx.button("Save", on_click=State.save_user_profile())
+                        rx.button("Save", on_click=State.save_user_profile()),
+                        rx.button("Reset", on_click=State.reset_user_profile())
                     ),
                     spacing="20px",
                 ),

@@ -11,6 +11,13 @@ import re
 
 load_dotenv()
 
+
+class State(rx.State):
+    immigration_status: str = ""
+    immigration_info: dict = {}
+    form_code: str = ""
+    chat_history: list = []
+
 # Configure Gemini
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
