@@ -19,7 +19,7 @@ class State(rx.State):
     location: str = ""
 
     # Greeting message for the user
-    greeting_message: str = "Hello! I’m here to assist you with your personalized immigration experience. I’m really excited to help and welcome to the U.S.A! 😊 Let's begin!"
+    greeting_message: str = "Hello! I’m here to assist you with your personalized immigration experience. I’m really excited to help and welcome you to the U.S.A! 😊 Let's begin!"
 
     questions: list[str] = [
         "What's your current immigration status?",
