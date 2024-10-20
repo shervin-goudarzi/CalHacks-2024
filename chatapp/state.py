@@ -58,9 +58,7 @@ class State(rx.State):
             ],
             temperature=0.9
         )
-        print(response.choices[0].message.content)
-        skills_array = json.loads(response.choices[0].message.content)
-        print(skills_array)
+        skills_array = response.choices[0].message.content
         return skills_array
 
     async def answer(self):

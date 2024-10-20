@@ -94,7 +94,7 @@ class State(ChatState):
             return f"This content can only be viewed by a logged in User. Nice to see you {self.tokeninfo['name']}"
         return "Not logged in."
     
-    async def save_user_profile(self):
+    def save_user_profile(self):
         user_data = {
             #'name': self.tokeninfo.get('name'),
             #'email': self.tokeninfo.get('email'),
@@ -106,6 +106,7 @@ class State(ChatState):
         }
         self.get_db().collection('users').document(self.user_id).set(user_data)
         self.old_user = True
+        return rx.redirect('/chatbot')
 
     def reset_user_profile(self):
         self.location = ''
@@ -175,7 +176,7 @@ def index() -> rx.Component:
                 padding="20px",
                 text_align="center",
             ),
-            rx.link("Login with Google", href="/home", font_size="lg", color="blue.500"),
+            rx.link("Login with Google", href="/chatbot", font_size="lg", color="blue.500"),
             spacing="20px",
         ),
         padding="50px",
@@ -284,7 +285,6 @@ def chatbot() -> rx.Component:
                         action_bar(),
                         rx.container(
                             rx.button("Save", on_click=State.save_user_profile()),
-                            rx.button("Reset", on_click=State.reset_user_profile())
                         )
                     ),
                     spacing="20px",
