@@ -314,7 +314,6 @@ def chatbot() -> rx.Component:
 def jobs_page() -> rx.Component:
     return rx.vstack(
         NavBar(),
-
         rx.center(
             rx.vstack(
                 rx.cond(

@@ -72,6 +72,7 @@ class State(rx.State):
         )
 
         chat_session = model.start_chat(history=[])
+        print(education, immigration_status)
 
         prompt = f"""The following is an aggregation JSON file of all potential jobs for an applicant. Each job is sepaarated by '#######'.
         The applicant's education is {education} and their current immigration status is {immigration_status}. 
