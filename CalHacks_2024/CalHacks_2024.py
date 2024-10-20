@@ -3,7 +3,8 @@ import json
 import jwt
 import os
 import time
-
+import warnings
+warnings.filterwarnings("ignore")
 from google.auth.transport import requests
 from google.oauth2.id_token import verify_oauth2_token
 import firebase_admin
@@ -16,9 +17,10 @@ import chatapp.style as style
 from typing import Dict, Any
 
 from documentation.documentation_help import State as DocumentationState
-from jobs.job_apify_scraper import State as JobState
+from jobs.job_scraper import State as JobState
 from documentation.documentation_components import documents
 from jobs.jobs_components import jobs
+
 
 from .react_oauth_google import (
     GoogleOAuthProvider,

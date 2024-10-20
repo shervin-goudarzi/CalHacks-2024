@@ -42,6 +42,7 @@ class State(rx.State):
 
     def get_immigration_info(self, status):
         # Configure Gemini
+        print("Immigration for Documentation", status)
         genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
         # Create the model
