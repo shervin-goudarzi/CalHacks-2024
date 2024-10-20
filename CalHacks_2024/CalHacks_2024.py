@@ -15,7 +15,9 @@ from chatapp.chatbot import State as ChatState
 from typing import Dict, Any
 
 from documentation.documentation_help import State as DocumentationState
+from jobs.job_apify_scraper import State as JobState
 from documentation.documentation_components import documents
+from jobs.jobs_components import jobs
 
 from .react_oauth_google import (
     GoogleOAuthProvider,
@@ -208,6 +210,7 @@ def NavBar() -> rx.Component:
             rx.hstack(
                 navbar_link("Profile", "/chatbot"),
                 navbar_link("Documents", "/documents"),
+                navbar_link("Job Postings", "/job_postings"),
                 spacing="20px",
             ),
             rx.menu.root(
@@ -290,6 +293,34 @@ def chatbot() -> rx.Component:
                 ),
                 width="100%",
             ),
+        width="100%",
+        spacing="20px",
+    )
+
+@rx.page(route="/job_postings",on_load=State.load_user_profile)
+@require_google_login
+def jobs_page() -> rx.Component:
+    return rx.vstack(
+        NavBar(),
+
+        rx.center(
+            rx.vstack(
+                rx.cond(
+                    State.old_user,
+                    rx.container(
+                        jobs(),
+                        on_mount=JobState.get_job_postings(State.skills, State.location, State.education, State.immigration_status)
+                    ),
+                    rx.container(
+                        rx.text("Please complete your profile to view your recommended nearby job postings."),
+                        rx.button("Complete Profile", on_click=State.redirect_to_chatbot),
+                    ),
+                ),
+                spacing="20px",
+            ),
+            padding="20px",
+            width="100%",
+        ),
         width="100%",
         spacing="20px",
     )
