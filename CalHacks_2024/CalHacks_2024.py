@@ -14,6 +14,9 @@ from chatapp.chatbot import chat, action_bar, chatmodel
 from chatapp.chatbot import State as ChatState
 from typing import Dict, Any
 
+from documentation.documentation_help import State as DocumentationState
+from documentation.documentation_components import documents
+
 from .react_oauth_google import (
     GoogleOAuthProvider,
     GoogleLogin,
@@ -129,6 +132,9 @@ class State(ChatState):
             self.education = user_data.get('education', '')
             return True
         return False
+    
+    def redirect_to_chatbot(self):
+        return rx.redirect('/chatbot')
 
 
 def user_info(tokeninfo: dict) -> rx.Component:
@@ -197,52 +203,29 @@ def navbar_link(name: str, href: str) -> rx.Component:
 
 def NavBar() -> rx.Component:
     return rx.box(
-        rx.desktop_only(
+        rx.hstack(
             rx.hstack(
-                rx.hstack(
-                    rx.text("Product_Name", font_size="2xl", font_weight="bold", padding="10px"),
-                    align_items="center",
-                ),
-                rx.hstack(
-                    navbar_link("Profile", "/chatbot"),
-                    navbar_link("Documents", "/documents"),
-                    spacing="20px",
-                ),
-                rx.menu.root(
-                    rx.menu.trigger(
-                        user_info(State.tokeninfo),
-                    ),
-                    rx.menu.content(
-                        rx.menu.item(
-                            rx.button("Logout", on_click=State.logout)
-                        ),
-                    ),
-                    justify="end",
-                ),
-                justify="between",
+                rx.text("Product_Name", font_size="2xl", font_weight="bold", padding="10px"),
                 align_items="center",
             ),
-        ),
-        rx.mobile_and_tablet(
             rx.hstack(
-                rx.hstack(
-                    rx.text("Product_Name", font_size="2xl", font_weight="bold", padding="10px"),
-                    align_items="center",
-                ),
-                rx.menu.root(
-                    rx.menu.trigger(
-                        user_info(State.tokeninfo),
-                    ),
-                    rx.menu.content(
-                        rx.menu.item(
-                            rx.button("Logout", on_click=State.logout)
-                        ),
-                    ),
-                    justify="end",
-                ),
-                justify="between",
-                align_items="center",
+                navbar_link("Profile", "/chatbot"),
+                navbar_link("Documents", "/documents"),
+                spacing="20px",
             ),
+            rx.menu.root(
+                rx.menu.trigger(
+                    user_info(State.tokeninfo),
+                ),
+                rx.menu.content(
+                    rx.menu.item(
+                        rx.button("Logout", on_click=State.logout)
+                    ),
+                ),
+                justify="end",
+            ),
+            justify="between",
+            align_items="center",
         ),
         padding="10px",
         width="100%",
@@ -258,19 +241,30 @@ def protected() -> rx.Component:
 
 @rx.page(route="/documents")
 @require_google_login
-def documents() -> rx.Component:
+def documents_page() -> rx.Component:
     return rx.vstack(
         NavBar(),
         rx.center(
-                rx.vstack(
-                    rx.text("Documents"),
-                    spacing="20px",
+            rx.vstack(
+                rx.cond(
+                    State.load_user_profile(),
+                    rx.container(
+                        documents(),
+                        on_mount=DocumentationState.get_immigration_info(State.immigration_status),
+                    ),
+                    rx.container(
+                        rx.text("Please complete your profile to view your documents."),
+                        rx.button("Complete Profile", on_click=State.redirect_to_chatbot),
+                    ),
                 ),
-                width="100%",
+                spacing="20px",
             ),
+            padding="20px",
             width="100%",
-            spacing="20px",
-        )
+        ),
+        width="100%",
+        spacing="20px",
+    )
 
 @rx.page(route="/chatbot")
 @require_google_login
