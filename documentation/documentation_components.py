@@ -40,6 +40,7 @@ def documents() -> rx.Component:
 
 def documents_formarea() -> rx.Component:
     return rx.vstack(
+        docu_chat(),
         rx.hstack(
             rx.input(
                 placeholder="Enter your form code here.",
@@ -55,7 +56,6 @@ def documents_formarea() -> rx.Component:
             padding="10px",
             width="100%",
         ),
-        docu_chat(),
     )
 
 def docu_chat() -> rx.Component:

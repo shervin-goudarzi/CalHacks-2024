@@ -20,7 +20,7 @@ class State(rx.State):
     required_documents: list = []
     additional_info: str = ""
     form_code: str = ""
-    chat_history: list[tuple[str, str]] = [("", "")]
+    chat_history: list[tuple[str, str]] = [("", "Please enter a form code for your immigration document to get started.")]
 
     def get_formatted_immigration_info(self, immigration_info_json):
         if not immigration_info_json:
@@ -158,18 +158,23 @@ class State(rx.State):
         # Initial message to set the context
         initial_prompt = f"You are an assistant helping with the instructions and questions for form {form_code}. The instructions have been uploaded as a PDF. Please provide a brief summary of the document."
         response = chat.send_message([sample_file, initial_prompt])
-        self.chat_history += [(response.text, "")]
+        self.chat_history.append(self.form_code, "")
+        self.chat_history.append("", response.text)
 
         # Start the conversation loop
-        # while True:
-        #     user_input = input("\nYou: ")
-        #     if user_input.lower() in ['exit', 'quit', 'bye']:
+        # i = 0
+        # prev = self.form_code
+        # while i < 4:
+        #     if self.form_code.lower() in ['exit', 'quit', 'bye']:
         #         print("Assistant: Goodbye! If you have any more questions, feel free to ask.")
+        #         i = 5
         #         break
-
-        #     # Send user's message and get response
-        #     response = chat.send_message(user_input)
-        #     print("Assistant: " + response.text)
+        #     if self.form_code != prev:
+        #         # Send user's message and get response
+        #         response = chat.send_message(self.form_code)
+        #         self.chat_history.append((self.form_code, ""))
+        #         self.chat_history.append(("", response.text))
+        #         i += 1
 
     def answer(self):
         # read_and_parse_pdf("../Documents/i-129.pdf")
