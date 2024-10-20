@@ -172,22 +172,28 @@ def require_google_login(page) -> rx.Component:
 
 
 def index() -> rx.Component:
-    return rx.center(
-        rx.vstack(
-            rx.heading("Welcome to Product_Name", size="2xl", color="teal.500"),
-            rx.text(
-                """
-                Immigrants and refugees face numerous challenges when settling in a new country, including language barriers, legal complexities, and difficulties in finding suitable employment and support networks. While existing resources like FindHello provide general information, there's a clear need for a more personalized, comprehensive, and long-term solution. 
-                Our app aims to fill this gap by offering tailored assistance throughout the integration process, helping immigrants and refugees thrive in their new home in the long term.
-                """,
-                font_size="lg",
-                padding="20px",
-                text_align="left",
+    return rx.box(
+        rx.center(
+            rx.vstack(
+                rx.heading("Welcome to Product_Name", size="2xl", color="teal.500"),
+                rx.text(
+                    """
+                    Immigrants and refugees face numerous challenges when settling in a new country, including language barriers, legal complexities, and difficulties in finding suitable employment and support networks. While existing resources like FindHello provide general information, there's a clear need for a more personalized, comprehensive, and long-term solution. 
+                    Our app aims to fill this gap by offering tailored assistance throughout the integration process, helping immigrants and refugees thrive in their new home in the long term.
+                    """,
+                    font_size="lg",
+                    padding="20px",
+                    text_align="left",
+                ),
+                rx.link("Login with Google", href="/chatbot", font_size="lg", color="blue.500"),
+                spacing="20px",
             ),
-            rx.link("Login with Google", href="/chatbot", font_size="lg", color="blue.500"),
-            spacing="20px",
+            padding="50px",
+            height="100vh",
+            width="100%",
         ),
-        padding="50px",
+        height="100vh",
+        width="100%",
         background="""center/cover radial-gradient(circle at 15% 8%, rgba(255, 193, 7, 0.2), hsla(0, 0%, 100%, 0) 25%),
             radial-gradient(circle at 75% 20%, rgba(33, 150, 243, 0.18), hsla(0, 0%, 100%, 0) 30%),
             radial-gradient(circle at 30% 65%, rgba(76, 175, 80, 0.22), hsla(0, 0%, 100%, 0) 45%),
