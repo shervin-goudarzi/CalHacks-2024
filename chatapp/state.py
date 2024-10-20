@@ -56,6 +56,17 @@ class State(rx.State):
         verification_result = response.choices[0].message.content
         is_valid = verification_result.lower().startswith("valid")
         return is_valid, verification_result
+    
+    def reset_chat(self):
+        self.question = ""
+        self.prev_question = ""
+        self.immigration_status = ""
+        self.when_moved = ""
+        self.education = ""
+        self.skills = [""]
+        self.location = ""
+        self.chat_history = [("", self.greeting_message), ("", "What is your updated immigration status?")]
+        self.current_question_index = 0
 
     async def get_skills(self, skills_text: str) -> list[str]:
         client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
@@ -146,3 +157,4 @@ class State(rx.State):
         # If the survey is finished, disable further input
         if self.current_question_index >= len(self.questions):
             self.current_question_index = -1
+            

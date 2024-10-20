@@ -10,14 +10,17 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 import reflex as rx
-from chatapp.chatbot import chat, action_bar, chatmodel
+from chatapp.chatbot import chat, action_bar, chatmodel, reset_button
 from chatapp.chatbot import State as ChatState
 from voicemodel.cartesia import State as VoiceState
 from voicemodel.cartesia import voice_model
+import chatapp.style as style
 from typing import Dict, Any
 
 from documentation.documentation_help import State as DocumentationState
+from jobs.job_apify_scraper import State as JobState
 from documentation.documentation_components import documents
+from jobs.jobs_components import jobs
 
 from .react_oauth_google import (
     GoogleOAuthProvider,
@@ -109,6 +112,7 @@ class State(ChatState):
         }
         self.get_db().collection('users').document(self.user_id).set(user_data)
         self.old_user = True
+        ChatState.current_question_index = 0
         return rx.redirect('/chatbot')
 
     def reset_user_profile(self):
@@ -212,7 +216,8 @@ def NavBar() -> rx.Component:
                 rx.hstack(
                     navbar_link("Profile", "/chatbot"),
                     navbar_link("Documents", "/documents"),
-                    spacing="20px",
+                    navbar_link("Job Postings", "/job_postings"),
+                spacing="20px",
                 ),
                 rx.menu.root(
                     rx.menu.trigger(
@@ -291,39 +296,64 @@ def chatbot() -> rx.Component:
         NavBar(),
             rx.center(
                 rx.vstack(
-                    rx.cond(
-                        State.old_user,
-                        rx.container(
-                            rx.text("Welcome back! Would you like to update your profile?"),
-                            chat(),
-                            rx.cond(
-                                ChatState.current_question_index >= 0, 
-                                action_bar(),
-                                rx.container(
-                                    rx.button("Save", on_click=State.save_user_profile()),
-                                    rx.button("Reset", on_click=State.reset_user_profile()),
-                                )
-                            ),
-                            spacing="20px",
+                    rx.container(
+                        chat(),
+                        rx.cond(
+                            State.current_question_index >= 0,
+                            action_bar(),
+                            action_bar_after_done(),
                         ),
-                        rx.container(
-                            chat(),
-                            rx.cond(
-                                ChatState.current_question_index >= 0, 
-                                action_bar(),
-                                rx.container(
-                                    rx.button("Save", on_click=State.save_user_profile()),
-                                    rx.button("Reset", on_click=State.reset_user_profile()),
-                                )
-                            ),
-                            spacing="20px",
-                        ),
+                        spacing="20px",
                     ),
                 ),
                 width="100%",
             ),
         width="100%",
         spacing="20px",
+    )
+
+@rx.page(route="/job_postings",on_load=State.load_user_profile)
+@require_google_login
+def jobs_page() -> rx.Component:
+    return rx.vstack(
+        NavBar(),
+        rx.center(
+            rx.vstack(
+                rx.cond(
+                    State.old_user,
+                    rx.container(
+                        jobs(),
+                        on_mount=JobState.get_job_postings(State.skills, State.location, State.education, State.immigration_status)
+                    ),
+                    rx.container(
+                        rx.text("Please complete your profile to view your recommended nearby job postings."),
+                        rx.button("Complete Profile", on_click=State.redirect_to_chatbot),
+                    ),
+                ),
+                spacing="20px",
+            ),
+            padding="20px",
+            width="100%",
+        ),
+        width="100%",
+        spacing="20px",
+    )
+
+def action_bar_after_done() -> rx.Component:
+    return rx.hstack(
+        rx.input(
+            value=State.question,
+            placeholder="Answer the question above.",
+            on_change=State.set_question,
+            style=style.input_style,
+        ),
+        rx.button(
+            "Finish",
+            on_click=State.save_user_profile,
+            style=style.button_style,
+            color_scheme="green",
+        ),
+        reset_button()
     )
 
 
