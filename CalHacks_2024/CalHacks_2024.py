@@ -301,6 +301,7 @@ def action_bar_after_done() -> rx.Component:
             "Finish",
             on_click=State.save_user_profile,
             style=style.button_style,
+            color_scheme="green",
         ),
         reset_button()
     )

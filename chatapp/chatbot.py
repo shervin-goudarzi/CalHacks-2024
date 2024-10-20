@@ -54,12 +54,7 @@ def action_bar() -> rx.Component:
             style=style.input_style,
         ),
         rx.button(
-            rx.cond(
-                State.current_question_index <= -1,
-                "Finish",
-                "Respond",
-            ),
-            color="green",
+            "Respond",
             on_click=State.answer,
             style=style.button_style,
         ),
