@@ -12,6 +12,8 @@ from firebase_admin import credentials, firestore
 import reflex as rx
 from chatapp.chatbot import chat, action_bar, chatmodel
 from chatapp.chatbot import State as ChatState
+from voicemodel.cartesia import State as VoiceState
+from voicemodel.cartesia import voice_model
 from typing import Dict, Any
 
 from .react_oauth_google import (
@@ -111,7 +113,7 @@ class State(ChatState):
         self.location = ''
         self.immigration_status = ''
         self.when_moved = ''
-        self.skills = []
+        self.skills = ['']
         self.education = ''
         ChatState.current_question_index = 0
 
@@ -253,6 +255,21 @@ def NavBar() -> rx.Component:
 def protected() -> rx.Component:
     return rx.vstack(
         NavBar(),
+        rx.vstack(
+            rx.select(
+                ["English","French","German","Spanish","Portuguese","Chinese","Japanese","Hindi","Italian","Korean","Dutch","Polish","Russian","Swedish","Turkish"],
+                default_value="English",
+                value=VoiceState.language,
+                on_change=VoiceState.set_language,
+                name="select"
+            ),
+            rx.input(
+                value=VoiceState.transcript,
+                placeholder="Ask a question to our voice assistant.",
+                on_change=VoiceState.set_transcript
+            ),
+            voice_model()
+        ),
     )
 
 @rx.page(route="/documents")
