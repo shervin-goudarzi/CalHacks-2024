@@ -10,18 +10,24 @@ def qa(question: str, answer: str) -> rx.Component:
             rx.text(answer, style=style.answer_style),
             text_align="left",
         ),
-        rx.box(
+        rx.cond(
+            answer == "",
+            rx.box(rx.text(question, style=style.question_style), text_align="right"),
             rx.box(
-                rx.text(question, style=style.question_style),
-                text_align="right",
-            ),
-            rx.box(
-                rx.text(answer, style=style.answer_style),
-                text_align="left",
-            ),
-            margin_y="1em",
+                rx.box(
+                    rx.text(question, style=style.question_style),
+                    text_align="right",
+                ),
+                rx.box(
+                    rx.text(answer, style=style.answer_style),
+                    text_align="left",
+                ),
+                margin_y="1em",
+            )
         )
     )
+    
+    
 
 def chat() -> rx.Component:
     return rx.box(
@@ -57,3 +63,4 @@ def chatmodel() -> rx.Component:
     )
 
 __all__ = ["chatmodel"]
+
