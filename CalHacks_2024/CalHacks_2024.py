@@ -118,6 +118,7 @@ class State(ChatState):
         self.skills = []
         self.education = ''
         ChatState.current_question_index = 0
+        ChatState.chat_history = []
 
     def load_user_profile(self):
         user_id = self.tokeninfo.get('sub')
@@ -276,7 +277,17 @@ def chatbot() -> rx.Component:
                     rx.cond(
                         State.old_user,
                         rx.container(
-                            rx.text("Welcome back!"),
+                            rx.text("Welcome back! Would you like to update your profile?"),
+                            chat(),
+                            rx.cond(
+                                ChatState.current_question_index >= 0, 
+                                action_bar(),
+                                rx.container(
+                                    rx.button("Save", on_click=State.save_user_profile()),
+                                    rx.button("Reset", on_click=State.reset_user_profile()),
+                                )
+                            ),
+                            spacing="20px",
                         ),
                         rx.container(
                             chat(),
@@ -285,6 +296,7 @@ def chatbot() -> rx.Component:
                                 action_bar(),
                                 rx.container(
                                     rx.button("Save", on_click=State.save_user_profile()),
+                                    rx.button("Reset", on_click=State.reset_user_profile()),
                                 )
                             ),
                             spacing="20px",
