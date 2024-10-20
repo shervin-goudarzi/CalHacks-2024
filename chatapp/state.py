@@ -15,7 +15,7 @@ class State(rx.State):
     immigration_status: str = ""
     when_moved: str = ""
     education: str = ""
-    skills: str = ""
+    skills: list[str] = [""]
     location: str = ""
 
     questions: list[str] = [
@@ -32,11 +32,11 @@ class State(rx.State):
     # Index of the current question
     current_question_index: int = 0
 
-    async def verify_input(self, question: str, answer: str) -> tuple[bool, str]:
+    async def verify_input(self, question: str, answer: str) -> tuple[bool, str]:   
         client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
-        
+
         response = await client.chat.completions.create(
-            model="gpt-4o-mini",  # Use the appropriate model
+            model="gpt-4o",  # Use the appropriate model
             messages=[
                 {"role": "system", "content": "You are a very understanding and empathetic AI assistant verifying user input for an immigration survey. Respond with only the word 'valid' verbatim if the input is appropriate for the question, otherwise explain to the user what they should type instead very empathetically and very clearly. Assume these individuals don't speak English as a first language."},
                 {"role": "user", "content": f"Question: {question}\nUser's answer: {answer}\nIs this a valid response?"}
@@ -48,7 +48,25 @@ class State(rx.State):
         is_valid = verification_result.lower().startswith("valid")
         return is_valid, verification_result
 
+    async def get_skills(self, skills_text: str) -> list[str]: 
+        client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are an advanced AI assistant. The user has listed skills as part of a survey. Your task is to extract the individual skills from their response and output them as an array of skills."},
+                {"role": "user", "content": f"Extract the skills from the following text: {skills_text}, in an array"}
+            ],
+            temperature=0.9
+        )
+        print(response.choices[0].message.content)
+        skills_array = json.loads(response.choices[0].message.content)
+        print(skills_array)
+        return skills_array
+
     async def answer(self):
+        client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
         if not self.question:
             return
         
@@ -60,25 +78,18 @@ class State(rx.State):
 
         # Add user's response to chat history
         self.chat_history.append((self.question, ""))
-        
-        client = AsyncOpenAI(
-            api_key=os.environ["OPENAI_API_KEY"]
-        )
 
         # Prepare the next question or finish the survey
         if self.current_question_index < len(self.questions) - 1:
             next_question = self.questions[self.current_question_index + 1]
-            if self.current_question_index == 3:
-                system_message = f"Reiterate the skills that the user shared. Do not display the user info in json format to them, make it human readable! The user will not ever provide their info in JSON format, it's your job to format it like so. Ask the user: {next_question}"
-            else:
-                system_message = f"Ask the user: {next_question}"
+            system_message = f"Ask the user: {next_question}"
         else:
             system_message = "Thank the user for completing the survey and provide a brief summary of their responses."
 
         session = await client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are a very understanding, compassionate, and empathetic AI assistant conducting an immigration survey. Provide helpful responses based on the user's answers. For the skills question, you must format the user's response as a JSON array of skills. The user will provide skills in natural language, and you need to extract and format them. For example, if the user says 'I can code in Python and JavaScript, and I'm good at project management', you should format it as: {\"skills\": [\"Python\", \"JavaScript\", \"Project Management\"]}. Do not display this JSON format to the user; instead, provide a human-readable response."},
+                {"role": "system", "content": "You are a very understanding, compassionate, and empathetic AI assistant conducting an immigration survey. Provide helpful responses based on the user's answers."},
                 {"role": "user", "content": f"User's response to '{self.questions[self.current_question_index]}': {self.question}"},
                 {"role": "system", "content": system_message}
             ],
@@ -113,7 +124,7 @@ class State(rx.State):
         elif self.current_question_index == 2:
             self.education = self.prev_question
         elif self.current_question_index == 3:
-            self.skills = self.prev_question
+            self.skills = await self.get_skills(answer)
         else:
             self.location = self.prev_question
 
@@ -123,3 +134,4 @@ class State(rx.State):
         # If we've finished the survey, disable further input
         if self.current_question_index >= len(self.questions):
             self.current_question_index = -1 
+
